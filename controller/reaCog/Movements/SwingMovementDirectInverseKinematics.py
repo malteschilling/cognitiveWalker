@@ -51,14 +51,10 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
     # while the other connects DEP and AEP. The first derivatives of the two function must be equal at the DEP. 
     ##
     def computeTrajectory(self, pep, dep, aep, numOfPoints ):   
-#       if (self.motivationLeg.wleg.leg.name == "middle_left_leg"):
-#           print("TRAJECTORY # ", numOfPoints)
         # crop to 1x3 vectors
-#       print("PEP ", self.motivationLeg.wleg.leg.name, " : ", pep, " - leg: ", self.motivationLeg.wleg.leg.input_foot_position, self.motivationLeg.gc.output_value)
         pep = pep[0:3]
         dep = dep[0:3]
         aep = aep[0:3]
-        #print("Traj ", pep, dep, aep)
         
         diffAepPep = aep - pep # Compute the vector between PEP and AEP
         normDiffAepPep = numpy.linalg.norm(diffAepPep) # Compute the length of the vector
@@ -69,19 +65,9 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
         normDiffAepPep=numpy.linalg.norm(diffAepPep)
         normDiffProjectionPep=numpy.linalg.norm(projection-diffAepPep)
         
-        # TODO: Currently the leg can start a swing movement while hanging in the air
-        # = after an internal simulation the model is reset to the real state
-        #   but no movement is initiated 
-        # this leads to a problem in the trajectory calculation
-        # SOLVE: put all legs on ground before planning
         if (pep[2] > -0.18):
             pep[2] = -0.18
-#TODO: WHAT DOES THIS PROJECTION CHECK DO???        
-#       if not (normProjection<normDiffAepPep>normDiffProjectionPep):
-#           print(pep,dep,aep, numOfPoints)
-#           print(self.motivationLeg.wleg.leg.name)
-            #~ from code import interact; interact('The given interim position is not compatible with this trajectory computation method.',local=locals().copy())
-#           raise Exception('The given interim position is not compatible with this trajectory computation method.')
+            
         aAxisVec = diffAepPep/ normDiffAepPep # The a-axis of the new coordinate system
         bAxisVec = (diffDepPep - projection)/ numpy.linalg.norm(diffDepPep - projection) # The b-axis of the new coordinate system
         relDep = numpy.array([numpy.linalg.norm(projection),numpy.linalg.norm(diffDepPep -projection) ]) # This is the DEP in the ab-system
@@ -116,20 +102,16 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
         return result
 
     def saveCurrentSwingState(self):
-#       print("SAVED SWING NETWORK")
         self.saved_trajectory = copy.copy(self.trajectory)
         self.saved_iteration = self.iteration
         self.saved_iControllerValue = copy.copy(self.__iControllerValue)
         
     def resetToSavedSwingState(self):
-        #print("RESETED SWING NETWORK", self.motivationLeg.wleg.leg.name, " - ", self.saved_iteration)
         self.trajectory = self.saved_trajectory
         self.iteration = self.saved_iteration
         self.__iControllerValue = self.saved_iControllerValue
 
     def resetSwingTrajectory(self):
-#       if (self.motivationLeg.wleg.leg.name == "middle_left_leg"):
-#           print("RESET SWING ", self.motivationLeg.wleg.leg.name)
         self.trajectory = None
         self.iteration = 0
 
@@ -137,39 +119,22 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
     #   Invokes the execution of the routine which has to be defined by the derived 
     #   classes.
     def modulatedRoutineFunctionCall(self, weight, target_point):
-        #print("SWING CALL ", self.motivationLeg.wleg.leg.name, self.motivationLeg.wleg.leg.input_foot_position)
         self.target_point = target_point()
-        #if weight <0.5 :
-        #   self.trajectory = None
-        #   self.iteration = 0
         if (self.motivationLeg.wleg.leg.leg_enabled) :
-#           self.target_point = self.motivationLeg.aep_shifted
             if isinstance(self.trajectory, (type(None))):
-#               if (self.motivationLeg.wleg.leg.name == "middle_left_leg"):
-#                   print("TARGET POINT ", self.target_point, self.motivationLeg.wleg.leg.name)
                 # we'll calculate a new swing trajectory from this point
                 
                 # reset temporary (per swing) variables 
                 self.__iControllerValue = numpy.zeros(3)
-#               current_pos = [0.1,  0.29, -0.2]
                 current_pos = self.motivationLeg.wleg.leg.input_foot_position
                 
                 self.dep = self.motivationLeg.wleg.depcalc(current_pos, self.target_point)
-                
-                #~ print('DEBUG:',self.wleg.leg.name)
-                #~ print('DEBUG: pep ',current_pos)
-                #~ print('DEBUG: dep ',self.dep)
-                #~ print('DEBUG: aep ',self.target_point)
-                #~ print('DEBUG: aepA',self.wleg.aep_shifted)
                 
                 # This is the minimum distance between the current foot position of the leg, the DEP and the AEP. The real distance, however, will
                 # be higher since the trajectory is curved, but the real distance cannot be computed (algebraically)
                 min_distance = numpy.linalg.norm(self.dep-current_pos) + numpy.linalg.norm(self.target_point-self.dep)
                 
-#               print( current_pos, self.dep, self.target_point )
                 self.target_point_high = numpy.array(self.target_point)
-                #self.target_point_high[2] = -0.1
-                #print(self.target_point_high)
                 
                 self.iteration_steps_swing = math.ceil((min_distance/WSTATIC.default_swing_velocity)*RSTATIC.controller_frequency)
 
@@ -178,30 +143,12 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
                 search_distance = 0.1
                 search_dep = numpy.array(self.target_point_high)
                 search_dep[0] += search_distance*0.5
-                #search_dep[1] = 0.24
                 search_dep[2] += 0.1
                 search_aep = numpy.array(self.target_point_high)
                 search_aep[0] += search_distance
-                #search_aep[1] = 0.265
                 search_trajectory = self.computeTrajectory(self.target_point_high, search_dep, search_aep, 60)
                 self.trajectory = numpy.concatenate((self.trajectory, search_trajectory), axis=1)
-                #print(self.trajectory.shape)
 
-#                print("Swing net init ", self.motivationLeg.wleg.leg.name, self.motivationLeg.wleg.leg.input_foot_position , " - ", self.trajectory[0][-1] , self.trajectory[1][-1], self.trajectory[2][-1])
-#SW             
-#               import matplotlib.pylab as py
-#               import matplotlib.pyplot as plt
-#               plt.ion()
-#               traject= plt.figure(figsize=(6, 6))
-#               traject_plot = traject.add_subplot(111)
-#               print( len(range(len(self.trajectory[0]))), len(self.trajectory[0] ) )
-#               traject_plot.plot(range(len(self.trajectory[0])), self.trajectory[0])
-#               self.footfall.canvas.draw()
-#               plt.ioff()
-#               input()
-                
-                #print('new trajectory:')
-                #print(self.trajectory)
             try :
                 nextpoint = self.trajectory[:,self.iteration]
             except IndexError :
@@ -215,8 +162,6 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
                 #~ nextpoint = self.trajectory[:,-1]
             nextpoint = numpy.append(nextpoint,0)
             self.iteration +=1
-            #~ print('DEBUG: nextpoint',nextpoint)
-            
             
             # now it's just a matter of moving the leg to the next pos
             
@@ -243,14 +188,10 @@ class SwingMovementDirectInverseKinematics(ModulatedRoutine):
         
         if self.motivationLeg.wleg.leg.leg_enabled:
             self.motivationLeg.wleg.addControlVelocities(angle_vel)
-#           if(self.motivationLeg.wleg.leg.name == "hind_right_leg"):
-#               print("Current SWING HR: ", self.motivationLeg.wleg.leg.getInputPosition(), angle_vel )
-            
             
     #@brief updates the angle velocity for one leg using PI controller
     #@param angleDiff   difference of current to desired input angles
     def __motorControlPI(self, angle_diff):
-#       print(self.wleg.leg.name, " motor control PI")
         # add the angular difference to the I controller
         self.__iControllerValue += angle_diff[0:3]
         

@@ -66,7 +66,6 @@ class StanceMovementBodyModel(ModulatedRoutine):
 				#print("Stance on ground - ", self.motivationNetLeg.wleg.leg.name, 
 				#    self.motivationNetLeg.wleg.leg.input_foot_position,
 				#    self.motivationNetLeg.pep_shifted[0])
-				#self.motivationNetLeg.motivationNetRobot.motivationNetLegs[2].rule3Ipsilateral.printCoordRule3()
 				stance_foot_pos = self.motivationNetLeg.wleg.leg.input_foot_position
 				if (stance_foot_pos[0] <= self.motivationNetLeg.pep_shifted[0] ):
 				    print("Stance correction: foot moved in Body Model in front of PEP ", self.motivationNetLeg.wleg.leg.name)
@@ -74,26 +73,10 @@ class StanceMovementBodyModel(ModulatedRoutine):
 				self.bodyModelStance.put_leg_on_ground(self.motivationNetLeg.wleg.leg.name, \
 					self.motivationNetLeg.wleg.leg.input_foot_position)
 				self.init_stance_footpoint = True
-#			import time
-#			before = time.time()
 			next_angles = self.inverseKinematic_provider.computeInverseKinematics( self.bodyModelStance.get_leg_vector(self.motivationNetLeg.wleg.leg.name))
-	#			self.bodyModelStance.put_leg_on_ground(self.motivationNetLeg.wleg.leg.name, \
-	#				self.bodyModelStance.transform_robot_target_to_leg_vector(self.motivationNetLeg.wleg.leg.input_foot_position, self.motivationNetLeg.wleg.leg.name) )
-
-	#		next_angles = self.inverseKinematic_provider.computeInverseKinematics( self.bodyModelStance.get_robot_target_from_leg_vector(self.motivationNetLeg.wleg.leg.name))
-#			after = time.time()
-#			py_time = after-before
-#			print("MMC Time: ", py_time)
-#			self.bodyModelStance.put_leg_on_ground(self.motivationNetLeg.wleg.leg.name, \
-#					self.motivationNetLeg.wleg.leg.input_foot_position)
-#			next_angles = self.inverseKinematic_provider.computeInverseKinematics( self.bodyModelStance.get_leg_vector(self.motivationNetLeg.wleg.leg.name))
-			
 
 			current_angles = numpy.array( self.motivationNetLeg.wleg.leg.getInputPosition() )
-			#if(self.motivationNetLeg.wleg.leg.name == "front_right_leg"):
-			#	print("Current Stance FR: ", self.motivationNetLeg.wleg.leg.getInputPosition() )
+
 			new_joint_velocities = (next_angles - current_angles.T)/(1/RSTATIC.controller_frequency)
 			
-#D			if(self.motivationNetLeg.wleg.leg.name == "hind_left_leg"):
-#D				print("HL Stance: ", new_joint_velocities)
 			self.motivationNetLeg.wleg.addControlVelocities(new_joint_velocities)

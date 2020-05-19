@@ -161,18 +161,6 @@ void MmcLeg::compute_projection_length() {
 void MmcLeg::mmc_kinematic_iteration_step() {
 	compute_target();
 	compute_projection_length();
-	/*new_projection_lengths = self.compute_projection_length(-1)
-		self.compute_leg_and_integrate(-1)
-		if self.logging_values :
-			self.leg_target.append(self.new_target)
-			self.projection_length.append(new_projection_lengths)
-			self.joint.append(self.temp_leg)
-		else:
-			self.leg_target[0] = self.new_target
-			self.projection_length[0] = new_projection_lengths
-			self.joint[0] = self.temp_leg
-		self.step += 1
-		self.current_sensor_angles = [[], [], []]*/
 	compute_joints_and_integrate();
 	leg = temp_leg;
 	iteration_step++;

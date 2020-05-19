@@ -1,3 +1,13 @@
+##
+# 	SwitchLeg
+#
+#	The Leg, WLeg structures handle sensory processing and sending of motor control 
+#	signals. SwitchLeg wraps and hides these - it provides an interface to 
+#	- either the leg control (routing calls to Leg and WLeg)
+#	- or the internal leg models (when running decoupled in internal simulation)
+#	This depends on the SwitchObject.
+##  
+
 class SwitchLeg (object):
 
 	def __init__(self, realLeg, mmcLeg, switchObject):
@@ -16,8 +26,6 @@ class SwitchLeg (object):
 	def __getattr__(self,name):
 		try :
 			if self.switch.decoupled:
-#				if (name == "predictedGroundContact"):
-#					print("MMC GC CALL: ")
 				return getattr(self.mmcLeg, name)
 			else:
 				return getattr(self.realLeg, name)
@@ -38,8 +46,3 @@ class SwitchLeg (object):
 					setattr(self.mmcLeg, name, value)
 				else:
 					setattr(self.realLeg, name, value)
-
-#	def addControlVelocities(self, new_vel):
-#		print("SWITCH VELOCITIES SEND BOTH WAYS")
-#		self.realLeg.addControlVelocities(new_vel)
-#		self.mmcLeg.addControlVelocities(new_vel)

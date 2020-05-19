@@ -18,13 +18,9 @@ class NoisyUnit(MotivationUnit):
         if (self.output_value > 0):
             #self.output_value = (NoisyUnit.random_add + NoisyUnit.random_factor * random.random() ) * self.output_value
             # In order to force the SAL network towards one solution
-#           if (self.name == "SAL_4"):
-#               self.output_value = (1 + NoisyUnit.random_factor * random.random() ) * self.output_value
-#           else:
             if (self.output_value > 1.):
                 self.output_value = (NoisyUnit.random_add + NoisyUnit.random_factor * random.random() )
             # Maybe include some added noise to keep activity alive
             else:
                 self.output_value = (NoisyUnit.random_add + NoisyUnit.random_factor * random.random() ) * self.output_value
-            #print(self.name, " / ", self.output_value)
         self.input_sum = 0

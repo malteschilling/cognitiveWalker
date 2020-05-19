@@ -44,8 +44,9 @@ class mmcAngularLegModelStance:
 		self.motivationNetLeg = motiv_leg
 		self.leg_segm = [self.motivationNetLeg.wleg.leg.segment_lengths[0], self.motivationNetLeg.wleg.leg.segment_lengths[1], self.motivationNetLeg.wleg.leg.segment_lengths[2]]
 		
-#		self.sensor_integration = 0
-#		self.current_sensor_angles = [[], [], []]
+		# We are not using noise in these experiments - but this is supported by the 
+		# Body Model.
+		#
 		# Noise can be added to sensory data which shall be integrated
 		# The noise is normal distributed around zero and the standard deviation has to
 		# be provided. For std dev = 0 no noise is applied.

@@ -13,22 +13,15 @@ neuron_dict = dict()
 #   (executing the output function).
 def executeNeuralNetStep(group_names=None):
     groups=getGroupsFromNames(group_names)
-#   print("Execute Neural Net Step")
     for group in groups:
-#       print("CONNECTIONS")
         for neuron in group:
             neuron.propagate()
-#           for conn in neuron.getConnection():
-#               if (conn[0].name=="swing_toBack_ml"):
-#                   print(neuron.name, neuron.output_value, conn[1])
             #for conn in (neuron.getConnection()):
             #   print(conn[0].name, conn[1])
 
     for group in groups:
         for neuron in group:
             neuron.evaluate()
-#           if (neuron.name=="swing_toBack_ml"):
-#                   print("output_value ", neuron.output_value)
 
     for group in groups:
         for neuron in group:
@@ -224,9 +217,6 @@ class Neuron(object):
     #   should be applied)  
     #   @param incoming activation (which shall be added)
     def addIncomingValue(self, newValue):
-        #self.__inputs.append(newValue)
-#       if (self.name == "swing_toFront_hr"):
-#           print("******** SWING TO FRONT ADD = ", self.input_sum, newValue)
         self.input_sum += newValue
         
     ##  Calculate current activation
@@ -267,23 +257,11 @@ class MotivationUnit(Neuron):
         Neuron.__init__(self, startValue=startValue, bias=bias, group_name=group_name)
         self.name = name
     
-    ##  Calculate current activation
-    #   from the current inputs and the constant bias
-    #   (automatically called in processing of network).
-#   def evaluate(self):
-#       if (self.name == "pD_MMC_unstableHL_delay"):
-#           print("DELAY EVALUATE = ", self.input_sum, self.bias, self.output_value)
-#       self.output_value = self.bias + self.input_sum
-    
     ##  Propagate current activation to all connected neurons (weighted)
     #   during process execution.
     def propagate(self):
         if self.output_value != 0 :
             for neuron, weight in self.connectedTo:
-                #if neuron.name=="swing_toBack_mr":
-                #    print("  -> Add input to toBack: ", self.name, self.output_value, weight )
-                #if neuron.name=="swing_toFront_mr":
-                #    print("  -> Add input to toFront: ", self.name, self.output_value, weight )
                 try:
                     neuron.addIncomingValue( self.output_value * weight )
                 except AttributeError as err1:
@@ -296,8 +274,6 @@ class MotivationUnit(Neuron):
     ##  Output function (automatically called in processing of network).
     #   Restricts value range to 0<=output<=1.
     def applyOutputFunction(self):
-#       if self.name=="problem_detector":
-#                   print("  Output problem_detector: ", self.output_value)
         # As a standard this is a linear unit.
         # A derived class just overwrites this function.
         if self.output_value >1:

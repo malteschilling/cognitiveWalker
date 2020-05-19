@@ -58,14 +58,6 @@ class WTAUnitFast(MotivationUnit):
             self.output_value = 0.
         if (self.output_value > 0.9):
             WTAUnitFast.foundWinner.input_sum += 1.
-        #list_act = ''
-        #for wta_n in WTAUnitFast.wtaUnitList:
-         #   list_act = list_act + str(wta_n.output_value) + " / "
-        #print("WTA winner: ", WTAUnitFast.foundWinner.output_value, " / ", list_act)
-        #        if (self.output_value > 0.95):
-#            for otherUnits in WTAUnitFast.wtaUnitList:
- #               otherUnits.output_value = 0.
-#            self.output_value = 1.
             
     def resetWTA(self):
         print("***** RESET THE WTA NETWORK ******")

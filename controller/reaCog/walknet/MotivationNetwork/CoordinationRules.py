@@ -6,7 +6,17 @@ from decimal import Decimal as Decimal
 import math
 import numpy
 
-
+##
+#	CoordinationRule
+#
+#	Coordination rules affect the posterior extreme positions of legs. This determines
+#	switching from stance to swing movement (when the leg is behind the PEP, 
+#	swing will be started). 
+#	A coordination rule object realizes an object that 
+#	- acts on the PEP and shifts it (using the evaluateShift method)
+#	- depending on certain conditions (which are described in the derived classes),
+#		always connected to a sender leg
+##
 class CoordinationRule(metaclass=abc.ABCMeta):
     def __init__(self, sender):
         self.sender=sender
@@ -15,7 +25,12 @@ class CoordinationRule(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def evaluateShift(self, mod_weight=None, coord_weight=None):
         return
-        
+
+##
+# 	Rule1
+#
+#	Is active when the sender leg is in swing
+##    
 class Rule1(CoordinationRule, Freezable):
     """
     
@@ -59,7 +74,12 @@ class Rule1(CoordinationRule, Freezable):
             if Decimal(getCurrentTime()).quantize(self.time_precision)< (self.stance_start_time+delay):
                 return coord_weight*self.swing_stance_pep_shift_ratio
         return 0.
-        
+
+##
+# 	Rule2
+#
+#	Becomes briefly activated after the sender leg ends swing movement.
+##          
 class Rule2(CoordinationRule, Freezable):
     def __init__(self, sender, start_delay, duration):
         CoordinationRule.__init__(self, sender)
@@ -83,6 +103,11 @@ class Rule2(CoordinationRule, Freezable):
                 return coord_weight
         return 0.
 
+##
+# 	Rule3
+#
+#	Is active when the sender leg is in a certain range near to the front of the PEP.
+##  
 class Rule3(CoordinationRule):
     def __init__(self, sender, active_distance):
         CoordinationRule.__init__(self, sender)
@@ -130,13 +155,6 @@ class Rule3Ipsilateral(Rule3, Freezable):
             threshold = self.threshold_offset+self.threshold_slope*velocity
         else:
             threshold = self.threshold_2_offset+self.threshold_2_slope*velocity
-        # Velocity changed as has been newly scaled in new body model
-#       if (self.sender.wleg.leg.name == "front_left_leg"):
-#           lpep = self.sender.pep[0]
-#           laep = self.sender.aep[0]
-#           vel = WSTATIC.default_speed
-#           position_threshold=math.fabs(lpep-laep)* (1/(1+numpy.exp(-4*self.threshold_slope*(5*velocity-self.threshold_turning_point))))
-#           print("3i: ", 1/(1+numpy.exp(-4*self.threshold_slope*(5*velocity-self.threshold_turning_point))), " - ", position_threshold)
         return threshold
 
     def printCoordRule3(self):
@@ -160,7 +178,6 @@ class Rule3SigmoidThreshold(Rule3, Freezable):
         # Velocity changed as has been newly scaled in new body model
         return 1/(1+numpy.exp(-4*self.threshold_slope*(5*velocity-self.threshold_turning_point)))
         
-
 class Rule4(CoordinationRule):
     def __init__(self, sender):
         CoordinationRule.__init__(self, sender)     

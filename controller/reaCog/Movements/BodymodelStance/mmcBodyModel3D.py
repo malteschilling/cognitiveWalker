@@ -256,7 +256,6 @@ class mmcBodyModelStance:
 	#	(the old value is also integrated, weighted by the damping value)
 	def compute_leg_computations_and_integrate(self, leg_nr):
 		equation_counter = 1
-#B		segm_leg_vect = self.segm_leg_ant[leg_nr] + self.front_vect[leg_nr]
 		segm_leg_vect = -self.delta_back[leg_nr//2] + self.segm_leg_post[leg_nr] + self.segm_post_ant[leg_nr//2] + self.front_vect[leg_nr]
 		segm_leg_vect += self.damping * self.leg_vect[leg_nr]
 		equation_counter += self.damping
@@ -302,10 +301,6 @@ class mmcBodyModelStance:
 		equation_counter = 1
 		new_segm_leg_ant = self.segm_leg_post[leg_nr] + self.segm_post_ant[leg_nr//2]
 		# Neighboring leg with respect to leg_nr
-#		leg_neighbor = leg_nr + (1 - 2*(leg_nr%2))
-#		new_segm_leg_ant += ((-1)**leg_nr) * self.segm_diag_to_right[0] + \
-#			self.segm_leg_post[leg_neighbor] + self.segm_post_ant[leg_nr//2]
-#		equation_counter += 1
 		new_segm_leg_ant += self.segm_leg_ant[leg_nr] * self.damping
 		equation_counter += self.damping
 		new_segm_leg_ant = new_segm_leg_ant/equation_counter
@@ -318,10 +313,6 @@ class mmcBodyModelStance:
 	def compute_segment_leg_post_computations_and_integrate(self, leg_nr):
 		equation_counter = 1
 		new_segm_leg_post = self.segm_leg_ant[leg_nr] - self.segm_post_ant[leg_nr//2]
-#		leg_neighbor = leg_nr + (1 - 2*(leg_nr%2))
-#		new_segm_leg_post += ((-1)**leg_nr) * self.segm_diag_to_right[0] + \
-#			self.segm_leg_ant[leg_neighbor] - self.segm_post_ant[leg_nr//2]
-#		equation_counter += 1
 		new_segm_leg_post += self.segm_leg_post[leg_nr] * self.damping
 		equation_counter += self.damping
 		new_segm_leg_post = new_segm_leg_post/equation_counter
@@ -455,7 +446,6 @@ class mmcBodyModelStance:
 		# Used for storing stability calculation in visualization
 		self.temp_stability_fact = 0.5
 		
-#		print("STABILITY")
 		left_leg, right_leg = 4, 5
 		
 		# Test if CoG moves moves behind the connecting line
@@ -469,15 +459,8 @@ class mmcBodyModelStance:
 			right_leg -= 2
 		# If there is no gc at all on one side it should be unstable
 		if (left_leg < 0) or (right_leg < 0):
-#			print("INSTABLE")
 			stability = False
 		else:
-			#left_leg_obj = getattr(self.wRobot, RSTATIC.leg_names[left_leg])
-			#right_leg_obj = getattr(self.wRobot, RSTATIC.leg_names[right_leg])
-			#print(left_leg, right_leg, self.motivationNet.wrobot.hind_right_leg.predictedGroundContact(), self.motivationNet.hind_right_leg.inStancePhase() )
-			
-			#print(left_leg_obj.input_foot_position, right_leg_obj.input_foot_position)
-			#print(-self.mmcStanceModel.front_vect[left_leg][-1], self.mmcStanceModel.front_vect[right_leg][-1])
 			diag_vect = -self.front_vect[left_leg] + self.front_vect[right_leg] \
 						+ self.get_segm_vectors_between_front(left_leg, right_leg)
 			left_foot_cog_vect = -self.front_vect[left_leg]
@@ -486,7 +469,6 @@ class mmcBodyModelStance:
 			if (left_leg == 0):
 				left_foot_cog_vect = -self.front_vect[left_leg] - self.segm_post_ant[1] - self.segm_post_ant[0]
 			left_foot_cog_vect[2] = 0.
-#			print("Stability: ", left_leg, right_leg, diag_vect, left_foot_cog_vect)
 			# The stability is determined in the following way:
 			# The connection between the two most hind legs touching the ground
 			# (one leg on each side) is constructing a vector to the back.
@@ -501,9 +483,6 @@ class mmcBodyModelStance:
 			# Correction factor of the parameter:
 			# If the most hind leg is a middle leg, the factor has to be increased by one
 			# - if both are front legs, it has to be increased by two.
-# For legs further to the front: is now already counteracted above = in left_foot_cog_vect
-#			segment_factor += (2-max(left_leg,right_leg)//2)
-#			print("Stability Problem Detector ", segment_factor)
 
 			# Used for storing stability calculation in visualization
 			self.temp_stability_fact = segment_factor
@@ -512,7 +491,5 @@ class mmcBodyModelStance:
 				input()
 			
 			if segment_factor > self.stability_threshold:
-				#print("Stability along middle segment - legs: ", left_leg, right_leg, " - factor ", segment_factor)
 				stability = False
-				#input("Press Enter to continue...")
 		return stability

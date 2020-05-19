@@ -35,13 +35,6 @@ class WRobot(Freezable):
 		for leg_name, leg in zip(RSTATIC.leg_names, self.robot.legs):
 			temp_wleg=WLeg(leg)
 			
-#			temp_wleg.aep = copy.copy(getattr(WSTATIC, leg_name.split("_", 1)[0]+"_initial_aep"))
-#			temp_wleg.pep = copy.copy(getattr(WSTATIC, leg_name.split("_", 1)[0]+"_initial_pep"))
-			
-#			if "left" in leg_name:
-#				temp_wleg.aep[1]*=-1
-#				temp_wleg.pep[1]*=-1
-			
 			setattr(self, leg_name, temp_wleg)
 			temp_wlegs.append(temp_wleg)
 		self.wlegs=tuple(temp_wlegs)
@@ -53,7 +46,6 @@ class WRobot(Freezable):
 		self.frozen=True
 
 	def setDirection(self, direction):
-		#print('received direction: ', direction)
 		if direction[0]>0:
 			temp_speed=numpy.linalg.norm(direction)
 		else:
@@ -69,7 +61,7 @@ class WRobot(Freezable):
 		elif temp_direction_angle<-WSTATIC.max_abs_direction_angle:
 			temp_direction_angle=-WSTATIC.max_abs_direction_angle
 		self.desired_direction_angle=temp_direction_angle
-		#print('dd', self.desired_direction_angle)
+		
 	##
 	#	Apply the control velocities and send them to the connected robot.
 	def sendAllAngleVelocity(self):
@@ -77,7 +69,6 @@ class WRobot(Freezable):
 			if wleg.leg.leg_enabled:
 				wleg.sendControlVelocities()
 
-# What exactly is this doing???
 	def sideway(self):
 		if (WSTATIC.sidewayenabled):
 			jf = self.robot.jointFront.getJointAngle()

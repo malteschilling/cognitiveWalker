@@ -18,9 +18,6 @@ test_ext = MmcBody(0.2)
 #	test_ext.mmc_iteration_step() 
 #print("Speed up: ", (py_time/c_time))
 
-#print(test_ext.get_leg_triangle(0)[0])
-#print(mmcBM.get_leg_triangle(0)[0])
-
 for i in range(0, 100):
 	test_ext.mmc_iteration_step()
 print(test_ext.get_leg_vector(1))

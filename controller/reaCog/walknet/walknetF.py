@@ -211,7 +211,6 @@ class Walknet (ControllerModule, Freezable):
             self.speed_factor_come_to_halt-=0.01
         if self.speed_factor_come_to_halt<=0:
             self._notifyOfCompletion()
-        #print('COG: ',self.wrobot.robot.getCenterOfMass())
         if WSTATIC.reduce_speed_for_reduced_stability:
             foot_positions=self.wrobot.robot.getInputFootPositions()
             convex_hull_points=stability.convexHull(foot_positions)
@@ -234,9 +233,7 @@ class Walknet (ControllerModule, Freezable):
                     self.speed_factor_stability=1
 
         if WSTATIC.reduce_speed_if_close_to_workspace_border:
-            #print('getDistanceToWorkspaceBorder: ', [leg.getDistanceToWorkspaceBorder(-1) for leg in self.wrobot.robot.legs])
             min_distance=min([leg.getDistanceToWorkspaceBorder(-1) for leg in self.wrobot.robot.legs])
-            #print('min_distance: ', min_distance)
             temp_speed_factor_workspace=1
             if min_distance<0:
                 self.speed_factor_workspace=0
@@ -250,11 +247,8 @@ class Walknet (ControllerModule, Freezable):
             else:
                 self.speed_factor_workspace=temp_speed_factor_workspace
         # Set the walking direction and speed
-        #print('self.wrobot.desired_speed: ', self.wrobot.desired_speed)
-        #self.controlRobot(self.wrobot.desired_speed* self.speed_factor_stability*self.speed_factor_workspace, self.wrobot.desired_direction_angle)
         self.controlRobot(self.motivationNetRobot.stance_forward_velocity.get_modulated_external_param("desired_speed") \
             * self.speed_factor_stability*self.speed_factor_workspace*self.speed_factor_come_to_halt, self.wrobot.desired_direction_angle)
-#       print("DES: ", self.motivationNetRobot.stance_forward_velocity.get_modulated_external_param("desired_speed"), self.wrobot.desired_speed)
         if self.startTS == 0:
             self.start = clock()
             self.startTS = timeStamp
@@ -275,13 +269,7 @@ class Walknet (ControllerModule, Freezable):
     #   After calculation of the processing step.
     #   Sends the data to the simulator.
     def post_processing_step(self, timestamp):
-#       self.wrobot.sendAllAngleVelocity()
-#DEBUG PRINT
         if (self.wrobot.switch.decoupled):
             activation_list = "MotivNet: \t"
             for mleg in self.motivationNetRobot.motivationNetLegs:
                 activation_list += str(mleg.gc.output_value) + "\t" + str(2*mleg.stance_motivation.output_value) + "\t" + str(3*mleg.swing_motivation.output_value) + "\t \t"
-#           print("HL pos: ", self.wrobot.mmcRobot.hind_left_leg.input_foot_position , " ; ", self.wrobot.mmcRobot.hind_left_leg.getInputPosition() , " / ", self.wrobot.mmcRobot.hind_left_leg.old_vel, " - ", self.wrobot.wRobot.hind_left_leg.leg.input_foot_position )
-            #print("HL vel ", self.motivationNetRobot.hind_left_leg.stance_net. , )
-#           print(activation_list)
-        #pass

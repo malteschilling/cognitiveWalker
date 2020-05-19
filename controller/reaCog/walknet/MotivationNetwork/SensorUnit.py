@@ -55,31 +55,11 @@ class BehindPEPSensorUnit(SensorUnit):
 		SensorUnit.__init__(self, name="behindPEP_" + motivLeg.wleg.leg.name[0] + motivLeg.wleg.leg.name[motivLeg.wleg.leg.name.index('_')+1], group_name=group_name)
 		self.motivationNetLeg = motivLeg
 		self.wleg = self.motivationNetLeg.wleg
-#R		self.min_active_time = WSTATIC.minimum_swing_time
-#R		self.last_activation_time=float('-inf')
 		self.output_value = 0
 		
 	def updateSensorValue(self):
 		if True:#self.leg_extreme_positions.forward): # Using the if(True) pretends that the robot will always move forwards.
 			self.output_value = 0
 			if (self.wleg.leg.leg_enabled):
-#R				if self.wleg.leg.input_foot_position[0] <= self.motivationNetLeg.pep_shifted[0]  and self.motivationNetLeg.inStancePhase():
 				if self.wleg.leg.input_foot_position[0] <= self.motivationNetLeg.pep_shifted[0]:
 					self.output_value = 1.
-#R					self.last_activation_time = getCurrentTime()
-#R				elif self.last_activation_time+self.min_active_time >= getCurrentTime():
-#R					self.output_value = 1.
-
-		# When moving backward
-		#else:
-		#	if self.wleg.input_foot_position[0] >= (self.wleg.aep[0] - 0.01 - self.motivationNetLeg.pep_shifted):
-		#		self.output_value = 1.
-		#		self.swing_min_counter = 10
-		#	else:
-		#		if self.swing_min_counter > 0:
-		#			self.output_value = 1.
-		#			self.swing_min_counter -= 1
-		#		else:
-		#			self.output_value = 0
-		# Reset the pep shift variable for the leg
-		#self.wleg.resetPepShift()

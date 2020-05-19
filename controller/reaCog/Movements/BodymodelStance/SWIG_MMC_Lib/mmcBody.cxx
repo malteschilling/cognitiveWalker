@@ -373,23 +373,6 @@ double MmcBody::check_static_stability(int left_leg, int right_leg) {
 	double segment_factor = (temp_vect_2[1]*temp_vect[0] - temp_vect_2[0]*temp_vect[1]) / 
 			(temp_vect_2[0]*segms[1].post_to_ant_vect[1] - temp_vect_2[1]*segms[1].post_to_ant_vect[0]);
 			
-	// Correction factor of the parameter:
-	// If the most hind leg is a middle leg, the factor has to be increased by one
-	// - if both are front legs, it has to be increased by two.
-/* For legs further to the front: is now already counteracted above = in left_foot_cog_vect
-
-	if (std::max(left_leg,right_leg) < 4) {
-		segment_factor +=1;
-		if (std::max(left_leg,right_leg) < 2) {
-			segment_factor +=1;
-		}
-	}
-*/
-//	std::cout << "Stability Problem Detector " << segment_factor << std::endl;
-/*	if (segment_factor > stability_threshold) {
-		std::cout << "Stability Problem Detected " << segment_factor << std::endl;
-		stability = false;
-	}*/
 	return segment_factor;
 }
 

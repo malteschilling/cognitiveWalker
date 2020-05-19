@@ -1,5 +1,6 @@
 '''
 Created on 4.7.2013
+Modified in 11.2019
 
 @author: mschilling
 '''
@@ -9,9 +10,6 @@ from controller.reaCog.MotivationNetwork.PhasicUnit import PhasicUnit
 from controller.reaCog.MotivationNetwork.DelayUnit import DelayUnit
 from controller.reaCog.MotivationNetwork.ModulatingMotivationUnit import CoordinationRuleShiftModulatingMotivationUnit
 from controller.reaCog.walknet.MotivationNetwork.ProblemDetectors import UnstableProblemDetector
-from controller.reaCog.walknet.MotivationNetwork.ProblemDetectorStability import ProblemDetectorStability
-
-#from controller.reaCog.CognitiveExpansion.DelayUnit import DelayUnit
 
 from controller.reaCog.walknet.MotivationNetwork.MotivationNetLeg import MotivationNetLeg
 
@@ -24,15 +22,24 @@ from controller.reaCog.CognitiveExpansion.CognitiveExpansion import CognitiveExp
 import Hector.RobotSettings as RSTATIC
 import controller.reaCog.WalknetSettings as WSTATIC
 from ..WDriveSafetyCheck import WDriveSafetyCheck as WDriveSafetyCheck
-
+from controller.reaCog.CognitiveExpansion.SwitchRobot import SwitchRobot
 import copy, numpy
 
+##
+# 	MotivationNetRobot
+#
+#	The overall robot controller, that describes the neural network consisting of 
+#	MotivationUnits. It contains global information (walking direction) and here the 
+#	cognitive expansion is rooted. ProblemDetectors are 
+#
+#	For details on the controller structure see Schilling and Cruse, 2017 "ReaCog, a 
+#	Minimal Cognitive Controller Based on Recruitment of Reactive Systems" in Frontiers in 
+#	Neurorobotics.
+##  
 class MotivationNetRobot(object):
 
     def __init__(self, wrobot):
         self.wrobot = wrobot
-        
-        #self.summed_phases = 0.
         
         self.safe_stop_time = 50
         self.debug = False
@@ -81,19 +88,8 @@ class MotivationNetRobot(object):
             setattr(self, wleg.leg.name, temp_motivationNetLeg)
             temp_motivationNetLegs.append(temp_motivationNetLeg)
         self.motivationNetLegs=tuple(temp_motivationNetLegs)
-
-#       self.front_left_leg.swing_net.modulatedRoutineFunctionCall( 1., self.front_left_leg.get_aep_shifted )
-        
-#        self.problemDetector = MotivationUnit("problem_detector", group_name='cognitive_layer')
-#8      self.problemDetector.addConnectionTo(self.problemDetector, 1)
         
         self.pD_unstableCheck_HL = UnstableProblemDetector("pd_check_unstable_hl", self.bodyModelStance, self, 4, group_name='cognitive_layer')
-        
-#       MU_Beh = MotivationUnit("MU_Beh")
-#MU_Beh.addConnectionTo( MU_Beh, 1 )
-#fwd = MotivationUnit("fwd", bias=1)
-#left_st = MotivationUnit("left_st")
-#left_sw = MotivationUnit("left_sw", bias=1)
         
         # bias = -1 and connect to 
         self.safeStop_HL = PhasicUnit("safeStop_HL", time_window=WSTATIC.safe_stop_time, group_name='cognitive_layer')
@@ -110,28 +106,8 @@ class MotivationNetRobot(object):
         self.safeStop_HL.addConnectionTo(self.MU_StartPlan, 1)
         #self.MU_StartPlan.addConnectionTo(self.stance_forward_velocity, -2)
         
-#timed_cogn_start.addConnectionTo(stop_left, -2)
-        
-#8      self.pD_unstableCheck_HL.addConnectionTo(self.problemDetector, 1)
-        # Used to make the robot actually fall backwards
-        #self.pD_unstableCheck_HL.addConnectionTo(self.hind_left_leg.swing_motivation, 10)
-        #self.pD_unstableCheck_HL.addConnectionTo(self.hind_left_leg.stance_motivation, -10)
-        
-        # When the real robot is getting instable, the robot should be slowed down!
-#26     self.pD_unstableHL_delay = PhasicUnit("pD_unstableHL_delay", group_name='cognitive_layer', time_window = WSTATIC.unstable_slow_down_window)
-#26     self.pD_unstableHL_delay.addConnectionTo(self.stance_forward_velocity, -1)
-#26     self.pD_unstableCheck_HL.addConnectionTo(self.pD_unstableHL_delay, 1)
-        # Enforcing that stance velocity is turned off for some time
-#26     self.pD_unstableHL_delay.addConnectionTo(self.pD_unstableHL_delay, 1)
-#26     self.pD_unstableHL_delay.addConnectionTo(self.hind_left_leg.stance_motivation, 10)
-#26     self.pD_unstableHL_delay.addConnectionTo(self.hind_left_leg.swing_motivation, -10)
-        
         self.pD_unstableCheck_HR = UnstableProblemDetector("pd_check_unstable_hr", self.bodyModelStance, self, 5, group_name='cognitive_layer')
         # New problem Detector
-#NEW PD        self.pD_unstableCheck_HR = ProblemDetectorStability("pd_check_unstable_hr_new", self.bodyModelStance, self, 5, self.pD_unstableCheck_HR_old, group_name='cognitive_layer')
-#NEW PD        self.pD_unstableCheck_FR = ProblemDetectorStability("pd_check_unstable_fr_new", self.bodyModelStance, self, 1, self.pD_unstableCheck_HR_old, group_name='cognitive_layer')
-
-        
         self.safeStop_HR = PhasicUnit("safeStop_HR", time_window=WSTATIC.safe_stop_time, group_name='cognitive_layer')
         self.pD_unstableCheck_HR.addConnectionTo(self.safeStop_HR, 1)
         #MU_Beh.addConnectionTo(stop_left, 1)
@@ -165,79 +141,22 @@ class MotivationNetRobot(object):
         self.safeStop_FR.addConnectionTo(self.stance_forward_velocity, -2)
         self.safeStop_FR.addConnectionTo(self.MU_StartPlan, 1)
         
-#8      self.pD_unstableCheck_HR.addConnectionTo(self.problemDetector, 1)
-        # Used to make the robot actually fall backwards
-        #self.pD_unstableCheck_HL.addConnectionTo(self.hind_left_leg.swing_motivation, 10)
-        #self.pD_unstableCheck_HL.addConnectionTo(self.hind_left_leg.stance_motivation, -10)
-        
-        # When the real robot is getting instable, the robot should be slowed down!
-#26     self.pD_unstableHR_delay = PhasicUnit("pD_unstableHR_delay", group_name='cognitive_layer', time_window = WSTATIC.unstable_slow_down_window)
-#26     self.pD_unstableHR_delay.addConnectionTo(self.stance_forward_velocity, -1)
-#26     self.pD_unstableCheck_HR.addConnectionTo(self.pD_unstableHR_delay, 1)
-        # Enforcing that stance velocity is turned off for some time
-#26     self.pD_unstableHR_delay.addConnectionTo(self.pD_unstableHR_delay, 1)
-#26     self.pD_unstableHR_delay.addConnectionTo(self.hind_right_leg.stance_motivation, 10)
-#26     self.pD_unstableHR_delay.addConnectionTo(self.hind_right_leg.swing_motivation, -10)
-        
         self.initCoordinationRules()
         
-        # Cognitive Expansion Ideas
-#       self.idea_MU = []
-        #TODO [1] is toBack
-# Original idea MU
-#        self.idea_MU = [self.middle_left_leg.swing_motivation_toFront, self.middle_left_leg.swing_motivation_toBack,
- #           self.hind_left_leg.swing_motivation_toFront, self.hind_left_leg.swing_motivation_toBack, 
-  #          self.hind_right_leg.swing_motivation_toFront, self.hind_right_leg.swing_motivation_toBack, 
-   #         self.middle_right_leg.swing_motivation_toFront, self.middle_right_leg.swing_motivation_toBack]
+        # Set up the search network.
         self.idea_MU = [self.front_left_leg.swing_motivation_toFront, self.front_left_leg.swing_motivation_toBack,
             self.middle_left_leg.swing_motivation_toFront, self.middle_left_leg.swing_motivation_toBack,
             self.hind_left_leg.swing_motivation_toFront, self.hind_left_leg.swing_motivation_toBack, 
             self.hind_right_leg.swing_motivation_toFront, self.hind_right_leg.swing_motivation_toBack, 
             self.middle_right_leg.swing_motivation_toFront, self.middle_right_leg.swing_motivation_toBack,
             self.front_right_leg.swing_motivation_toFront, self.front_right_leg.swing_motivation_toBack]
-#       for i in range(8):
-#           self.idea_MU.append( MotivationUnit( "Idea_MU_" + str(i) ) )
-#       self.idea_MU[2] = self.middle_left_leg.swing_motivation_toBack
-#       self.idea_MU[3].output_value = 1.
-#       self.idea_MU[3].addConnectionTo(self.idea_MU[3], 1)
-        # TODO: put in all MUs connected to different behavior
-#30     self.idea_MU[4] = self.middle_left_leg.swing_motivation_toBack
-        
-        #self.idea_MU[3].addConnectionTo(self.problemDetector, 1)
-        
-#       from controller.reaCog.MotivationNetwork.ModulatingMotivationUnit import CoordinationRuleShiftModulatingMotivationUnit
-#       temp_motivation_unit = CoordinationRuleShiftModulatingMotivationUnit("rule1_hl_to_fl", # name
-#               getattr(self.hind_left_leg, 'rule1').evaluateShift,
-#               -0.2, # weight
-#               self.front_left_leg.shiftPep,
-#               startValue=0,
-#               group_name=self.wrobot.hind_left_leg.leg.name + '_coordination_rules') 
-        #temp_motivation_unit.addConnectionTo(temp_motivation_unit, 1)
-#       self.idea_MU[0] = temp_motivation_unit
         
         self.cognitive_expansion = CognitiveExpansion(self, self.idea_MU)
-        
-        # Induce information into the spreading activation layer
-        # = where did the problem occur?
-        # Note: [index] has to point to stanceHL
-        # TODO: Already in CognitiveExpansion? There safeStop mapped to SAL,
-        # Should be only there with new PDs!
-#        self.pD_unstableCheck_HL.addConnectionTo(self.cognitive_expansion.SAL_WTA_Net.layer_SAL[2], 1)
- #       self.pD_unstableCheck_HR.addConnectionTo(self.cognitive_expansion.SAL_WTA_Net.layer_SAL[4], 1)
-        
-        from controller.reaCog.CognitiveExpansion.SwitchRobot import SwitchRobot
-        
+                
+        # Introduce the switch for decoupling the body        
         if (isinstance(self.wrobot, SwitchRobot)):
-            #self.problemDetector.addConnectionTo(self.wrobot.switch, 1)
             self.MU_StartPlan.addConnectionTo(self.wrobot.switch, 1)
-            #self.cognitive_expansion.Phase.unstableMMCCheckPD.addConnectionTo(self.wrobot.switch, 1)
             self.wrobot.mmcRobot.Phase = self.cognitive_expansion.Phase
-            # The Problem Detector for the internal model
-            
-#       print("COMPUTE TRAJ")
-#       import numpy
-#       self.front_left_leg.swing_net.computeTrajectory(numpy.array([0.09085963, 0.28736604, -0.18]), 
-#           numpy.array([0.11057309, 0.28998979, -0.08]), numpy.array([0.15, 0.27, -0.18]), 45)
         
     ## Update all the leg networks.
     def updateStanceBodyModel(self):
@@ -252,18 +171,11 @@ class MotivationNetRobot(object):
     
         self.bodyModelStance.updateLegStates()
         
-        #TODO: Remove this - will be handled by gc old_stance in body model
-        # Right now only needed as during switching swing might turn on
         for i in range(0,6):
             if (self.motivationNetLegs[i].swing_motivation.output_value > 0.5):
                 self.bodyModelStance.lift_leg_from_ground(i)
-        
-#       print("JOINTS: ", self.wrobot.front_left_leg.leg.alpha.inputPosition, self.wrobot.front_left_leg.leg.beta.inputPosition, self.wrobot.front_left_leg.leg.gamma.inputPosition, self.wrobot.front_left_leg.leg.computeForwardKinematics())
-#       print("MMC:    ", self.bodyModelStance.get_robot_target_from_leg_vector('front_left_leg') )
             
         self.bodyModelStance.mmc_iteration_step()
-        
-#       print("AFTER:  ", self.bodyModelStance.get_robot_target_from_leg_vector('front_left_leg') )
         
         if (self.cognitive_expansion.Phase.MU_Beh.output_value > 0.) \
             or (self.cognitive_expansion.Phase.MU_Sim.output_value > 0.) \

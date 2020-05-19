@@ -20,12 +20,26 @@ import math
 #from controller.reaCog.Movements.BodymodelStance.mmcAngularLegModelRobot import mmcAngularLegModelStance
 from controller.reaCog.Movements.BodymodelStance.mmcAngularLegModelRobot_CPP import mmcAngularLegModelStance
 
+##
+# 	MotivationNetLeg
+#
+#	The single leg controller - overall, each leg has its own controllers and control
+#	emerges out of the interaction of these (see MotivationNetRobot).
+#	Here, the structure of the neural network is described - consisting of MotivationUnits
+#	- for the different behaviors (swing and stance)
+#	- general information as direction
+#	- sensory units 
+#	- and coordination rules (starting from this sender leg)
+#	For details on the biology see Schilling et al., 2013 "Walknet, a bio-inspired 
+#	controller for hexapod walking" in Biological Cybernetics and for details on the 
+#	reactive controller structure see Schilling and Cruse, 2017 "ReaCog, a Minimal 
+#	Cognitive Controller Based on Recruitment of Reactive Systems" in Frontiers in 
+#	Neurorobotics.
+##  
 class MotivationNetLeg(object):
 
     def __init__(self, wleg, motivationNetRobot):
         
-#       self.counter = 0
-    
         self.wleg = wleg
         self.motivationNetRobot = motivationNetRobot
         
@@ -72,8 +86,6 @@ class MotivationNetLeg(object):
             self.swing_motivation = MotivationUnit(("swing_" + leg_name), group_name='behavior_layer')
             self.swing_motivation_toFront = ModulatingMotivationUnit ( ("swing_toFront_" + leg_name), self.swing_net.modulatedRoutineFunctionCall, fct_param =self.get_aep_shifted, threshold=0.5, group_name='behavior_layer')
             self.swing_motivation_toBack = ModulatingMotivationUnit ( ("swing_toBack_" + leg_name), self.swing_net.modulatedRoutineFunctionCall, fct_param = self.get_swing_backward_target, threshold=0.5, group_name='behavior_layer')    
-            #self.swing_motivation = ModulatingMotivationUnit ( ("swing_" + leg_name), self.swing_net.modulatedRoutineFunctionCall, fct_param = self.get_aep_shifted, threshold=0.5, group_name='_coordination_rules')
-            #ModulatingMotivationUnit ( ("swing_" + leg_name), self.swing_net.modulatedRoutineFunctionCall, threshold=0., group_name=self.wleg.leg.name+ '_coordination_rules')
         else:
             raise Exception('No valid swing trajectory generator was chosen.')
                 
@@ -87,8 +99,6 @@ class MotivationNetLeg(object):
         self.stance_motivation = MotivationUnit(("stance_" + leg_name), startValue=1, group_name='behavior_layer')
         self.stance_motivation_toBack = ModulatingMotivationUnit( ("stance_toBack_" + leg_name), self.stance_net.modulatedRoutineFunctionCall, startValue=1, threshold=0.5, group_name='behavior_layer')
         self.stance_motivation_toFront = ModulatingMotivationUnit( ("stance_toFront_" + leg_name), self.stance_net.modulatedRoutineFunctionCall, startValue=1, threshold=0.5, group_name='behavior_layer')
-        
-        #self.stance_motivation = ModulatingMotivationUnit( ("stance_" + leg_name), self.stance_net.modulatedRoutineFunctionCall, startValue=1, threshold=0.1, group_name=self.wleg.leg.name+ '_coordination_rules')
         
         rec_w = 0.6
         
@@ -124,16 +134,6 @@ class MotivationNetLeg(object):
         self.stance_motivation_toFront.addConnectionTo(self.stance_motivation_toBack, -0.6)
         self.backward.addConnectionTo(self.stance_motivation_toBack, -0.15)
         
-#           self.stance_motivation.addConnectionTo(self.stance_motivation, WSTATIC.ws/(WSTATIC.ws + 1))
-#           self.swing_motivation.addConnectionTo(self.stance_motivation, -3/(WSTATIC.ws + 1))
-#           self.legMU.addConnectionTo(self.stance_motivation, WSTATIC.ws/(WSTATIC.ws + 1))
-            #self.backward.addConnectionTo(self.stance_motivation, -3/(WSTATIC.ws + 1))
-        
-#           self.swing_motivation.addConnectionTo(self.swing_motivation, WSTATIC.ws/(WSTATIC.ws)) # ws/ws+1
-#           self.stance_motivation.addConnectionTo(self.swing_motivation, -3/(WSTATIC.ws + 1))
-#           self.legMU.addConnectionTo(self.swing_motivation, 1/(WSTATIC.ws + 1))
-            #self.forward.addConnectionTo(self.swing_motivation, -3/(WSTATIC.ws + 1))
-        
         rule1_coordination_weights=WSTATIC.coordination_rules["rule1"]
         self.rule1=CoordinationRules.Rule1(     self,
                                                 rule1_coordination_weights["swing_stance_pep_shift_ratio"],
@@ -163,12 +163,6 @@ class MotivationNetLeg(object):
                                                 rule3Ipsilateral_coordination_weights["threshold_2_offset"],
                                                 rule3Ipsilateral_coordination_weights["threshold_2_slope"])
     
-        #rule3SigmoidThreshold_coordination_weights=WSTATIC.coordination_rules["rule3SigmoidThreshold"]
-        #self.rule3SigmoidThreshold= CoordinationRules.Rule3SigmoidThreshold(self,
-        #                                       rule3SigmoidThreshold_coordination_weights["active_distance"],
-        #                                       rule3SigmoidThreshold_coordination_weights["threshold_turning_point"],
-        #                                       rule3SigmoidThreshold_coordination_weights["threshold_slope"])
-
         self.rule4= CoordinationRules.Rule4(    self)
         
         self.behindPEP = BehindPEPSensorUnit(self, group_name='sensors')
@@ -176,8 +170,6 @@ class MotivationNetLeg(object):
         self.behindPEP.addConnectionTo(self.stance_motivation, -9*WSTATIC.ws/(WSTATIC.ws + 1))
         self.behindPEP.addConnectionTo(self.swing_motivation, 9*WSTATIC.ws/(WSTATIC.ws + 1)) # was 9
         
-        # ToDo: threshold for start of swing quite small - should be improved (e.g. longer 
-        # activation from above)
         self.swing_starter = PhasicUnit( ("sw_starter_" + leg_name), group_name='sensors', time_window=(RSTATIC.controller_frequency*WSTATIC.minimum_swing_time), threshold=0.25 )
         self.swing_motivation.addConnectionTo(self.swing_starter, 1)
         self.swing_starter.addConnectionTo(self.swing_motivation, 9*WSTATIC.ws/(WSTATIC.ws + 1) )
@@ -185,15 +177,6 @@ class MotivationNetLeg(object):
 
         self.gc = MNSTATIC.ground_contact_class_dict[MNSTATIC.groundContactMethod](self, group_name='sensors')
         self.gc.addConnectionTo(self.stance_motivation, 9/(WSTATIC.ws + 1)) # was 3
-        # ToDo: GC should inhibit swing in the future again - but there should be some PhasicUnit
-        # behavior = only in beginning.
-        #self.gc.addConnectionTo(self.swing_motivation, -9/(WSTATIC.ws + 1))
-        
-#       print(self.wleg.leg.name, " SW: ", self.swing_motivation.output_value, " - ST: ", self.stance_motivation.output_value,
-#           " - GC: ", self.gc.output_value, " - behPEP: ", self.behindPEP.output_value, " Starter: ", self.swing_starter.output_value)
-
-#       self.collision_detector = CollisionDetector(self, group_name='sensors')
-#       self.collision_detector.addConnectionTo(self.swing_net.notifyOfCollision)
         
     def __del__(self):
         pass
@@ -204,15 +187,12 @@ class MotivationNetLeg(object):
             important for the Dual Quaternion network, but for the single leg network
             this might be dropped as there the relaxation is very fast.
         """
-#       self.motivationNetRobot.bodyModelStance.lift_leg_from_ground(self.wleg.leg.name)
         for _ in range(0,10) :
             self.mmcLegStance.set_joint_angles( self.wleg.leg.getInputPosition() )
             self.mmcLegStance.mmc_kinematic_iteration_step()
             
         if __debug__:
             print(self.wleg.leg.name, " in init mmc")
-            
-#       self.motivationNetRobot.bodyModelStance.
             
     def update_leg_mmc_model(self):
         """ Update the leg network.
@@ -223,24 +203,6 @@ class MotivationNetLeg(object):
             is fused with the current configuration into a coherent state.
         """
         pass
-#       self.counter += 1
-#       if (self.wleg.leg.name == 'front_right_leg'):
-#           if (10 < self.counter < 13):
-#               print("#### ADD INPUT ####")
-#               self.swing_motivation_toFront.addIncomingValue(1)
-#           print(self.wleg.leg.name, " SW: ", self.swing_motivation.output_value, " - ST: ", self.stance_motivation.output_value,
-#               " - GC: ", self.gc.output_value, " - behPEP: ", self.behindPEP.output_value, " Starter: ", self.swing_starter.output_value)
-#       if (self.wleg.leg.name == 'front_right_leg'):
-#           print("Sw: %6.2f , St: %6.2f " % (self.swing_motivation.output_value, self.stance_motivation.output_value) )
-# Add sensor integration
-#       if (self.kin_calc == 2):
-#           pass
-#DEB            self.mmcLegStance.add_sensory_joint_values([self.alpha.getTargetAngle(),
-#DEB                self.beta.getTargetAngle(), self.gamma.getTargetAngle()])
-            #print("Current angles: " + str([self.alpha.targetAngle,
-            #   self.beta.targetAngle, self.gamma.targetAngle]))
-#DEB            self.mmcLegStance.mmc_kinematic_iteration_step()
-            #print(self.mmcLeg.get_joint_angles())
             
 #=========== Shifting the PEP Methods ====================      
     @property
@@ -326,18 +288,6 @@ class MotivationNetLeg(object):
 
     ##  Function which answers if the motivation unit for swing is active.
     def inSwingPhase(self):
-#       if (self.wleg.leg.name == "middle_left_leg"):
-#           sw_text = "InSwing Test - "
-#           sw_text = sw_text + "SW_F: " + '{:.4}'.format(float(self.swing_motivation_toFront.output_value)) + "\t - "
-#           sw_text = sw_text + "SW_B: " + '{:.4}'.format(float(self.swing_motivation_toBack.output_value)) + "\t - "
-#           sw_text = sw_text + "ST_F: " + '{:.4}'.format(float(self.stance_motivation_toFront.output_value)) + "\t - "
-#           sw_text = sw_text + "ST_B: " + '{:.4}'.format(float(self.stance_motivation_toBack.output_value)) + "\t - "
-#           sw_text = sw_text + "GC  : " + '{:.2}'.format(float(self.gc.output_value)) + "\t - "
-#           sw_text = sw_text + "UnstableDelay : " + '{:.4}'.format(float(self.motivationNetRobot.pD_unstableHL_delay.output_value)) + "\t - "
-#           sw_text = sw_text + "UnstableDelay : " + '{:.4}'.format(float(self.motivationNetRobot.cognitive_expansion.Phase.pD_MMC_unstableHL_delay.output_value))
-#           sw_text = sw_text + "TestDelay : " + '{:.4}'.format(float(self.motivationNetRobot.cognitive_expansion.Phase.testBehaviour_delay.output_value))
-#           print(sw_text)
-        # TODO: Should be moved to stance_unit as modulation or somewhere else
         swing_test = ((self.swing_motivation_toFront.output_value > self.swing_motivation_toFront.threshold)
             or (self.swing_motivation_toBack.output_value > self.swing_motivation_toBack.threshold))
         if swing_test:

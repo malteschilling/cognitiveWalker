@@ -20,16 +20,6 @@ struct LEG_VARS{
     
 };
 
-/*struct MMC_VECTOR {
-	MMC_VECTOR(double a, double b, double c):
-		x(a), y(b), z(c)
-	{}
-	
-    double x;
-    double y;
-    double z;
-};*/
-
 class MmcLeg {
 	public:
 		MmcLeg(std::vector<double> segm_l, double beta_d, double damp);

@@ -84,7 +84,6 @@ class mmcBodyModel:
         
         temp_mmcLegs=[]
         for wleg in self.wRobot.wlegs:
-#NEW leg_enabled            if wleg.leg.leg_enabled:
             temp_mmcLeg = mmcAngularLegModel(wleg)
             setattr(self, wleg.leg.name, temp_mmcLeg)
             temp_mmcLegs.append(temp_mmcLeg)
@@ -164,8 +163,6 @@ class mmcBodyModel:
         if not(WSTATIC.real_robot):
             self.imu=self.communication_interface.CreateBfbClient(120, ["IMU_PROT"])
         
-#CAUSE        self.old_swing_bm = [False for i in range(0,6)]
-#CAUSE        self.leg_leading_to_problem = -1
         self.current_stability = True
         self.debug = False
 
@@ -218,21 +215,7 @@ class mmcBodyModel:
             #   start_x, start_y, start_z, end_x, end_y, end_z
             points = [[],[],[],[],[],[]]
         
-            # initial_robot_position
-            # initial_model_position
-            # ??? HERE THE RELATIVE TRANSLATION SHOULD BE ROTATED TOO! initial_robot + rotate(relative_translation)
             relative_translation = self.initial_robot_translation + self.rotate_vector_around_z(relative_rotation, (self.getCurrentGlobalBodyPosition() - self.initial_relative_translation))
-#2            print("Rel TL: ", relative_translation, " - rot: ", relative_rotation, self.getCurrentGlobalBodyPosition() )
-            
-#1            foot_on_ground = 0
-#1            while not(self.gc[foot_on_ground]) and not(foot_on_ground>4):
-#1                foot_on_ground += 1
-#1            print("FOOT on ground: ", foot_on_ground, " = ", self.foot_global[foot_on_ground], self.front_vect[foot_on_ground])
-#1            segm_test_vect = self.foot_global[foot_on_ground] - self.front_vect[foot_on_ground]
-#1            if foot_on_ground > 1:
-#1                segm_test_vect += self.segm_post_ant[0]
-#1            if foot_on_ground > 3:
-#1                segm_test_vect += self.segm_post_ant[1]
             
             current_rel_transl = relative_translation + self.rotate_vector_around_z(relative_rotation, (-self.segm_post_ant[0]))
         
@@ -278,21 +261,6 @@ class mmcBodyModel:
             # Lines visualizing the main body are constructed
             self.appendPointList(relative_translation, (relative_translation + self.rotate_vector_around_z(relative_rotation, \
                 (-self.segm_post_ant[0] - self.segm_post_ant[1] - self.segm_post_ant[2]) ) ), points)
-    #       self.appendPointList(rel_translation, (rel_translation-self.segm[0][-1]), points)
-    #       self.appendPointList((rel_translation-self.segm[0][-1]), (rel_translation-self.segm[0][-1] - self.segm[1][-1]), points)
-    #       self.appendPointList((rel_translation-self.segm[0][-1] - self.segm[1][-1]), (rel_translation-self.segm[0][-1] - self.segm[1][-1] - self.segm[2][-1]), points)
-        
-            # Lines to the foot points of the internal model
-    #       self.appendPointList((rel_translation - 0.9 * self.segm[0][-1]), (rel_translation + self.front_vect[0][-1]), points)
-    #       self.appendPointList((rel_translation - 0.9 * self.segm[0][-1]), (rel_translation + self.front_vect[1][-1]), points)
-    #       self.appendPointList((rel_translation - self.segm[0][-1] - 0.9 * self.segm[1][-1]), (rel_translation - self.segm[0][-1] + self.front_vect[2][-1]), points)
-    #       self.appendPointList((rel_translation - self.segm[0][-1] - 0.9 * self.segm[1][-1]), (rel_translation - self.segm[0][-1] + self.front_vect[3][-1]), points)
-    #       self.appendPointList((rel_translation - self.segm[0][-1] - self.segm[1][-1] - 0.2 * self.segm[2][-1]), (rel_translation - self.segm[0][-1] - self.segm[1][-1] + self.front_vect[4][-1]), points)
-    #       self.appendPointList((rel_translation - self.segm[0][-1] - self.segm[1][-1] - 0.2 * self.segm[2][-1]), (rel_translation - self.segm[0][-1] - self.segm[1][-1] + self.front_vect[5][-1]), points)
-            #self.bodyModel_tmp.append(points)
-            #with open("/Users/mschilling/Desktop/body_model.txt", "wb") as myfile:
-             #   numpy.save(myfile, self.bodyModel_tmp)
-                #myfile.write(str(points)+'\n')
             self.simulation_sender.internalModelGlobalPosition = str(points)
 
     def set_motivation_net(self, motiv_net):
@@ -300,10 +268,7 @@ class mmcBodyModel:
 
     def init_leg_mmc_models(self):
         for mmc_leg in self.mmcLegs:
-            #print(mmc_leg.getInputPosition())
             mmc_leg.init_leg_mmc_model()
-            #print("MMC LEG: ", mmc_leg.getInputPosition(), mmc_leg.getFootPosition())
-            #print("WLEG   : ", mmc_leg.wleg.leg.getInputPosition() )
         
     def __getattr__(self,name):
         #print("Robot MMC Lookup: ", name)
@@ -437,48 +402,14 @@ class mmcBodyModel:
         if (self.Phase.MU_Sim.output_value > 0.) or (self.Phase.MU_Beh.output_value > 0.) or (self.Phase.MU_TestBeh.output_value > 0.):
             for motiv_leg, leg_nr in zip(self.motivationNetRobot.motivationNetLegs, range(len(self.motivationNetRobot.motivationNetLegs))):
                 self.updateSingleLegState(motiv_leg, leg_nr)
-#                 if (motiv_leg.inSwingPhase()):
-#                 #if (motiv_leg.inSwingPhase()):
-#                     #print("SWING ", leg_nr)
-#                     if (self.old_stance_motivation[leg_nr]):
-#                         #self.motivationNetRobot.bodyModelStance.lift_leg_from_ground(leg_nr)
-#                         self.lift_leg_from_ground(leg_nr)
-#                         #print(motiv_leg.wleg.leg.name, " starts swing")
-#                         #print("SWING Motiv: ", motiv_leg.swing_motivation.output_value, " / ", motiv_leg.swing_motivation_toFront.output_value,
-#                         # " - stance: ", motiv_leg.stance_motivation.output_value, " / ", motiv_leg.stance_motivation_toBack.output_value)
-#                     self.old_stance_motivation[leg_nr] = False
-#                     motiv_leg.stance_net.resetStanceTrajectory()
-#                     
-#                     # Also for the swing phase update the leg positions index
-#                     # the body model - only needed for visualization
-#                     self.updateLegVectorsFromLegModel(motiv_leg.wleg.leg.name)
-#                     
-#                     #print(self.gc)
-#                 else:
-#                     if not(self.old_stance_motivation[leg_nr]):
-#                         self.put_leg_on_ground(motiv_leg.wleg.leg.name, self.mmcLegs[leg_nr].getFootPosition() )
-#                         print(motiv_leg.wleg.leg.name, " starts stance")
-#                     else:
-#                         self.updateLegVectorsFromLegModel(motiv_leg.wleg.leg.name)
-#                     self.old_stance_motivation[leg_nr] = True
-# #            print("After Update gc: ", self.gc)
                     
     def updateLegVectorsFromLegModel(self, leg_name):
         leg_nr = RSTATIC.leg_names.index(leg_name)
         leg_vec = self.mmcLegs[leg_nr].getFootPosition()
         i = 0
         # Set leg and diag vector
-
         self.leg_vect[leg_nr] = numpy.array(leg_vec)
         self.front_vect[leg_nr] = -self.segm_leg_ant[leg_nr] + leg_vec
-
-        #print("MMC LEG: ", self.mmcLegs[leg_nr].getFootPosition(), self.segm_post_ant[2])
-        # Construction of all foot vectors - the ones to legs in the air are not used!
-#       for i in range(0,leg_nr) :
-#           self.footdiag[leg_nr][i] = self.set_up_foot_diag(leg_nr, i, -1)
-#       for i in range(leg_nr+1,6):
-#           self.footdiag[i][leg_nr] = self.set_up_foot_diag(i, leg_nr, -1)
-
 
     """ **** Graphic methods: Simple drawing of the body model **************************
     """
@@ -525,24 +456,7 @@ class mmcBodyModel:
                 [self.foot_global[leg][2], (self.foot_global[leg][2] - self.front_vect[leg][2]), \
                  (self.foot_global[leg][2] - self.front_vect[leg][2] - self.segm[leg//2][2]), \
                  (self.foot_global[leg][2] - self.front_vect[leg][2] - self.segm[leg//2][2] + self.rear_vect[leg][2])]]
-        
-        
-#       return([ [ self.foot_global[leg][0], \
-#           (self.foot_global[leg][0] - self.leg_vect[leg][0]), \
-#           (self.foot_global[leg][0] - self.leg_vect[leg][0] + self.segm_leg_post[leg][0]), \
-#           (self.foot_global[leg][0] - self.leg_vect[leg][0] + self.segm_leg_post[leg][0] + self.segm_post_ant[leg//2][0]), \
-#           (self.foot_global[leg][0] - self.leg_vect[leg][0])], \
-#           [ self.foot_global[leg][1], \
-#           (self.foot_global[leg][1] - self.leg_vect[leg][1]), \
-#           (self.foot_global[leg][1] - self.leg_vect[leg][1] + self.segm_leg_post[leg][1]), \
-#           (self.foot_global[leg][1] - self.leg_vect[leg][1] + self.segm_leg_post[leg][1] + self.segm_post_ant[leg//2][1]), \
-#           (self.foot_global[leg][1] - self.leg_vect[leg][1])], \
-#           [ self.foot_global[leg][2], \
-#           (self.foot_global[leg][2] - self.leg_vect[leg][2]), \
-#           (self.foot_global[leg][2] - self.leg_vect[leg][2] + self.segm_leg_post[leg][2]), \
-#           (self.foot_global[leg][2] - self.leg_vect[leg][2] + self.segm_leg_post[leg][2] + self.segm_post_ant[leg//2][2]), \
-#           (self.foot_global[leg][2] - self.leg_vect[leg][2])] ])
-            
+                    
     """ **** Computation of the MMC equations *******************************************
     """
     ##  Compute the leg vectors: For all standing legs
@@ -552,7 +466,6 @@ class mmcBodyModel:
         if self.gc[leg_nr]:
             #print("Iterate")
             equation_counter = 1
-#B      segm_leg_vect = self.segm_leg_ant[leg_nr] + self.front_vect[leg_nr]
             segm_leg_vect = -self.delta_back[leg_nr//2] + self.segm_leg_post[leg_nr] + self.segm_post_ant[leg_nr//2] + self.front_vect[leg_nr]
             segm_leg_vect += self.damping * self.leg_vect[leg_nr]
             equation_counter += self.damping
@@ -604,10 +517,6 @@ class mmcBodyModel:
             equation_counter = 1
             new_segm_leg_ant = self.segm_leg_post[leg_nr] + self.segm_post_ant[leg_nr//2]
             # Neighboring leg with respect to leg_nr
-#       leg_neighbor = leg_nr + (1 - 2*(leg_nr%2))
-#       new_segm_leg_ant += ((-1)**leg_nr) * self.segm_diag_to_right[0] + \
-#           self.segm_leg_post[leg_neighbor] + self.segm_post_ant[leg_nr//2]
-#       equation_counter += 1
             new_segm_leg_ant += self.segm_leg_ant[leg_nr] * self.damping
             equation_counter += self.damping
             new_segm_leg_ant = new_segm_leg_ant/equation_counter
@@ -623,10 +532,6 @@ class mmcBodyModel:
         if self.gc[leg_nr]:
             equation_counter = 1
             new_segm_leg_post = self.segm_leg_ant[leg_nr] - self.segm_post_ant[leg_nr//2]
-#       leg_neighbor = leg_nr + (1 - 2*(leg_nr%2))
-#       new_segm_leg_post += ((-1)**leg_nr) * self.segm_diag_to_right[0] + \
-#           self.segm_leg_ant[leg_neighbor] - self.segm_post_ant[leg_nr//2]
-#       equation_counter += 1
             new_segm_leg_post += self.segm_leg_post[leg_nr] * self.damping
             equation_counter += self.damping
             new_segm_leg_post = new_segm_leg_post/equation_counter
@@ -774,9 +679,6 @@ class mmcBodyModel:
         # Right now, the simulator is reset to the current state of the real body.
         if (self.Phase.MU_Sim.output_value > 0.5):
             if (self.simulation):
-                #print("MMC Velocities: ", self.front_right_leg.controlVelocities, \
-                #   "ST: ", self.motivationNetRobot.front_right_leg.stance_motivation.output_value, \
-                #   " - SW: ", self.motivationNetRobot.front_right_leg.swing_motivation.output_value)
                 for leg in self.mmcLegs:
                     leg.sendControlVelocities()
             else:           
@@ -789,9 +691,7 @@ class mmcBodyModel:
             if ( (self.Phase.MU_TestBeh.output_value > 0.25) and self.simulation):
                 print("RESET ALL VELOCITIES AND MMC NET FOR TEST OF BEHAVIOR")
                 self.motivationNetRobot.cognitive_expansion.refreshInternalModelFromRobotData() 
-                #print(self.gc)
                 self.update_static_stability_along_segment()    
-#           print("RESET ALL VELOCITIES")
             for motiv_leg in self.motivationNetRobot.motivationNetLegs:
                 motiv_leg.wleg.controlVelocities = numpy.zeros(3)
             self.simulation = False
@@ -815,46 +715,21 @@ class mmcBodyModel:
         # Used for storing stability calculation in visualization
         self.temp_stability_fact_back = 0.5
         
-#       print("STABILITY")
         left_leg, right_leg = 4, 5
         
         # Test if CoG moves moves behind the connecting line
         # connecting the leg on each side which
         # - has gc
         # - is the leg furthest backward having gc on that side
-        # inSwingPhase(self)
-#7        while left_leg>=0 and (not(self.get_ground_contact(left_leg))):
-#7            left_leg -= 2
-#7        while right_leg>0 and (not(self.get_ground_contact(right_leg))):
-#7            right_leg -= 2
-            
         while left_leg>=0 and not(self.mmcLegs[left_leg].predictedGroundContact()): # (not(self.get_ground_contact(left_leg))): #(getattr(self.motivationNetRobot, RSTATIC.leg_names[left_leg])).inSwingPhase():
             left_leg -= 2
         while right_leg>0 and not(self.mmcLegs[right_leg].predictedGroundContact()): # (not(self.get_ground_contact(right_leg))): #(getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).inSwingPhase():
             right_leg -= 2
-#        while left_leg>=0 and (getattr(self.motivationNetRobot, RSTATIC.leg_names[left_leg])).inSwingPhase(): # not((getattr(self.motivationNetRobot, RSTATIC.leg_names[left_leg])).wleg.predictedGroundContact()): # (not(self.get_ground_contact(left_leg))): #(getattr(self.motivationNetRobot, RSTATIC.leg_names[left_leg])).inSwingPhase():
- #           left_leg -= 2
-  #      while right_leg>0 and (getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).inSwingPhase(): # not((getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).wleg.predictedGroundContact()): # (not(self.get_ground_contact(right_leg))): #(getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).inSwingPhase():
-   #         right_leg -= 2
-            
-#        print("Middle left leg: ", self.mmcLegs[2].predictedGroundContact(), 
- #           " - ", self.mmcLegs[2].input_foot_position[2], 
-  #          " / Swing: ",  self.motivationNetRobot.motivationNetLegs[2].swing_motivation.output_value,
-   #         " / Stance: ",  self.motivationNetRobot.motivationNetLegs[2].stance_motivation.output_value)
-            #" / ",  self.motivationNetRobot.motivationNetLegs[2].wleg.controlVelocities)
-            #" vect: ", self.get_leg_vector('middle_left_leg'))
             
         # If there is no gc at all on one side it should be unstable
         if (left_leg < 0) or (right_leg < 0):
-#           print("INSTABLE")
             stability = False
         else:
-            #left_leg_obj = getattr(self.wRobot, RSTATIC.leg_names[left_leg])
-            #right_leg_obj = getattr(self.wRobot, RSTATIC.leg_names[right_leg])
-            #print(left_leg, right_leg, self.motivationNet.wrobot.hind_right_leg.predictedGroundContact(), self.motivationNet.hind_right_leg.inStancePhase() )
-            
-            #print(left_leg_obj.input_foot_position, right_leg_obj.input_foot_position)
-            #print(-self.mmcStanceModel.front_vect[left_leg][-1], self.mmcStanceModel.front_vect[right_leg][-1])
             diag_vect = -self.front_vect[left_leg] + self.front_vect[right_leg] \
                         + self.get_segm_vectors_between_front(left_leg, right_leg)
             left_foot_cog_vect = -self.front_vect[left_leg]
@@ -863,32 +738,17 @@ class mmcBodyModel:
             if (left_leg == 0):
                 left_foot_cog_vect = -self.front_vect[left_leg] - self.segm_post_ant[1] - self.segm_post_ant[0]
             left_foot_cog_vect[2] = 0.
-#           print("Stability: ", left_leg, right_leg, diag_vect, left_foot_cog_vect)
             segment_factor = (diag_vect[1]*left_foot_cog_vect[0] - diag_vect[0]*left_foot_cog_vect[1]) \
                 / (diag_vect[0]*self.segm_post_ant[1][1] - diag_vect[1]*self.segm_post_ant[1][0]) 
             # Correction factor of the parameter:
             # If the most hind leg is a middle leg, the factor has to be increased by one
             # - if both are front legs, it has to be increased by two.
-# For legs further to the front: is now already counteracted above = in left_foot_cog_vect
-#           segment_factor += (2-max(left_leg,right_leg)//2)
-#           print("Stability Problem Detector ", segment_factor)
 
             # Used for storing stability calculation in visualization
             self.temp_stability_fact_back = segment_factor
-#           if self.temp_stability_fact > self.stability_threshold:
-#               print("Instable in COG EXP", self.temp_stability_fact)
-#DEBUG              gc = [0, 0, 0, 0, 0, 0]
-#DEBUG              for i in range(0, 6):
-#DEBUG                  gc[i] = not((getattr(self.motivationNetRobot, RSTATIC.leg_names[i])).inSwingPhase())
-#DEBUG              print(gc, left_leg, right_leg)
-#               input()
             
             if segment_factor > self.stability_threshold:
-                #print("Stability along middle segment - legs: ", left_leg, right_leg, " - factor ", segment_factor)
                 stability = False
-                #input("Press Enter to continue...")
-#           print("Internal Model stability: ", segment_factor)
-        #print("IM stability: ", self.temp_stability_fact, " - ", left_leg, " / ", right_leg)
         
          # Check stability at front:
         left_leg, right_leg = 0, 1
@@ -910,11 +770,9 @@ class mmcBodyModel:
             if (left_leg == 0):
                 left_foot_cog_vect = -self.front_vect[left_leg] - self.segm_post_ant[1] - self.segm_post_ant[0]
             left_foot_cog_vect[2] = 0.
-            #print("Stability: ", left_leg, right_leg, diag_vect, left_foot_cog_vect)
             segment_factor = (diag_vect[1]*left_foot_cog_vect[0] - diag_vect[0]*left_foot_cog_vect[1]) \
                 / (diag_vect[0]*self.segm_post_ant[1][1] - diag_vect[1]*self.segm_post_ant[1][0]) 
             self.temp_stability_fact_front = segment_factor
-            #print("Stability fact front: ", self.temp_stability_fact_front, left_leg, right_leg, self.motivationNetRobot.motivationNetLegs[left_leg].wleg.realLeg.leg.input_foot_position[2], self.motivationNetRobot.motivationNetLegs[right_leg].wleg.realLeg.leg.input_foot_position[2], [self.motivationNetRobot.motivationNetLegs[i].wleg.predictedGroundContact() for i in range(0,6)])
             if self.temp_stability_fact_front < WSTATIC.stability_threshold_front:
                 stability = False       
                 print("INSTABLE AT FRONT in internal simulation")         

@@ -19,22 +19,6 @@ ground_contact_class_dict = {
 }
 groundContactMethod = 'PredictedGC'
 
-# assume gc after the first touchdown until swinging is initialized:
-#assume_gc_during_stance_phase = True
-# assume no gc during the swing as long as the beta joint lifts the leg:
-#assume_no_gc_while_lifting_leg = True
-
-# Parameter for prediction based method
-# parameter describes predicted height value from which on 
-# a leg is predicted as in gc - is given as a percentage
-# (good value: 0.8, means when leg is having a height of 0.8 * the 
-# intended height control value it is already assumed as having ground contact
-# predicted_ground_contact_height_factor is defined in WalknetSettings
-
-# Parameter for tarsus pressure sensor
-# ground contact (gC) detection by force threshold:
-# tarsusPressureGCThreshold is defined in WalknetSettings
-
 # Parameters for torsion based method (number 3)
 #groundcontact, if torque is above:
 contacttorque1 = -9

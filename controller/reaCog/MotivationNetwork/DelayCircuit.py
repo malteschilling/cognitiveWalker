@@ -1,5 +1,12 @@
 from controller.reaCog.MotivationNetwork.MotivationUnit import MotivationUnit
 
+##
+#	DelayCircuit
+#
+#	is a small neural network (of MotivationUnits) that delays an input signal.
+# 	An input_unit is given on initialization, but firing will be delayed by the
+#	set delay.
+##
 class DelayCircuit():
 
     def __init__(self, name, input_unit, delay=5, group_name=''):

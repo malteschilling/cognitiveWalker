@@ -6,6 +6,27 @@ from controller.reaCog.MotivationNetwork.PhasicUnit import PhasicUnit
 
 from .CognitivePhases import CognitivePhases
 
+##
+# 	SpreadAndSelectNetwork
+#
+#	Defines the three layers of the cognitive expansion.
+#	For each MotivationUnit connected to a behavior there is a corresponding unit
+#	in these three layers:
+#	- SAL = spreading of activation layer, search for alternative behaviors
+#		that are close by to the behavior causing the problem
+#	- WTA = selection of a single behavior activated in SAL (using a Winner-Take-All
+#		structure)
+#	- RTB = remember behaviors that have been tested in internal simulation 
+#		which inhibits selecting these behaviors again in the WTA layer.
+#
+#	The SAL and WTA layers are connected to specific phases during planning ahead that
+# 	are realized in CognitivePhases.
+#
+#	For details on the controller structure see submitted publication 
+#  	or for an older version: Schilling and Cruse, 2017 "ReaCog, a Minimal 
+#	Cognitive Controller Based on Recruitment of Reactive Systems" in Frontiers in 
+#	Neurorobotics.
+##  
 class SpreadAndSelectNetwork(object):
 
     def __init__(self, orig_MUs, cog_phases):
@@ -26,7 +47,6 @@ class SpreadAndSelectNetwork(object):
         self.modulate_idea_input_time_window.addConnectionTo(self.modulate_idea_input, 1)       
         
         self.sal_weight = 0.3
-        # Has to be REMOVED
         self.layer_SAL = []
         self.layer_WTA = []
         # Remember Tested Behavior
@@ -67,24 +87,26 @@ class SpreadAndSelectNetwork(object):
                 + self.original_MUs[i].name[self.original_MUs[i].name.index("_")+3] 
                 + self.original_MUs[i].name[-3:]) ) ) )
             WTAUnitFast.foundWinner.addModulatedConnectionBetweenNeurons( self.layer_WTA[-1], self.layer_RTB[-1], 1 )
-            #self.layer_RTB[-1].addConnectionTo(self.layer_SAL[-1], -0.1)
             self.layer_RTB[-1].addConnectionTo(self.layer_WTA[-1], -0.2)
             self.layer_RTB[-1].addConnectionTo(self.layer_RTB[-1], 1)
-
+	
+	# Reset function before performing a new search for an alternative behavior
     def resetWTA(self):
         self.layer_WTA[0].resetWTA()
-        
+    
+    # Reset function, called when internal simulation ended
     def resetSAL(self):
         for salUnit in self.layer_SAL:
             salUnit.output_value = 0
             salUnit.input_sum = 0
             
+    # Reset function, called when internal simulation ended
     def resetRTB(self):
         for rtbUnit in self.layer_RTB:
             rtbUnit.output_value = 0
             rtbUnit.input_sum = 0
 
-    # ToDo: Remove learning - replace by activation during next run.
+	# For future extension when a winner shall be learnt.
     def learnCurrentWinner(self, activation):
         winner = -1
         for i in range(len(self.layer_WTA)):

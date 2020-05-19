@@ -122,9 +122,6 @@ class mmcBodyModelStance:
             #if not(motiv_leg.wleg.predictedGroundContact()):
                 if (self.old_stance_motivation[leg_nr]):
                     self.motivationNetRobot.bodyModelStance.lift_leg_from_ground(leg_nr)
-#                    print(motiv_leg.wleg.leg.name, " starts swing")
-#                    for i in range(0,6):
-#                        print(self.get_ground_contact(i))
                 self.old_stance_motivation[leg_nr] = False
             else:
                 self.old_stance_motivation[leg_nr] = True
@@ -135,12 +132,8 @@ class mmcBodyModelStance:
     #   segment. Takes an angle (0 os straight ahead) and a velocity factor
     #   (around 0.1-0.2 should be fine) to come up with a corresponding pull vector.
     def pullBodyModelAtFrontIntoRelativeDirection(self, pull_angle, speed_fact):
-#        print("SPEED: " , speed_fact)
         if (self.pull_angle_front != pull_angle) or (self.speed_fact_front != speed_fact):
             self.swig_stance_body_model.set_pull_front( pull_angle, speed_fact )
-#           pull_angle_BM = pull_angle + math.atan2( self.segm_post_ant[0][1], self.segm_post_ant[0][0])
-#           self.pull_front[0] = speed_fact * math.cos(pull_angle_BM) # pull x
-#           self.pull_front[1] = speed_fact * math.sin(pull_angle_BM) # pull y
             self.pull_angle_front = pull_angle
             self.speed_fact_front = speed_fact
 
@@ -150,10 +143,7 @@ class mmcBodyModelStance:
     #   to come up with a corresponding pull vector.
     def pullBodyModelAtBackIntoRelativeDirection(self, pull_angle, speed_fact):
         if (self.pull_angle_back != pull_angle) or (self.speed_fact_back != speed_fact):
-#       pull_angle_BM = pull_angle + math.atan2( -self.segm_post_ant[2][1], -self.segm_post_ant[2][0])
             self.swig_stance_body_model.set_pull_back( pull_angle, speed_fact )
-            #self.pull_back[0] = speed_fact * math.cos(pull_angle_BM) # pull x
-            #self.pull_back[1] = speed_fact * math.sin(pull_angle_BM) # pull y
             self.pull_angle_back = pull_angle
             self.speed_fact_back = speed_fact
 
@@ -165,21 +155,9 @@ class mmcBodyModelStance:
         old_stab = True
         if not(self.current_stability): 
             old_stab == self.get_ground_contact(leg_nr)
-            #print("UNSTABLE: ", old_stab, self.current_stability)
-#        new_stab = self.check_new_stability(leg_nr)
-#            print("STABILITY - ", leg_nr, " = ", self.get_ground_contact(leg_nr), " / ", old_stab, self.get_ground_contact(leg_nr) == True)
-        #self.last_stability[leg_nr] = new_stab
         if not(self.current_stability): #CAUSEself.leg_leading_to_problem :
             return (self.get_ground_contact(leg_nr) == True)
         return True
-
-#    def check_new_stability(self, leg_nr):
- #       #for i in range(0,6):
-  #       #   print(self.get_ground_contact(i))
-   #     if (self.last_stability[leg_nr] == True) and (self.get_ground_contact(leg_nr) == True):
-    #        return True
-     #   else:
-      #      return False
 
     ##  Get the angles between the inner segments which are used for the
     #   segment joints.
@@ -225,7 +203,6 @@ class mmcBodyModelStance:
             stability = True
             left_leg, right_leg = 4, 5
         
-#CAUSE            current_swing_bm = [getattr(self.motivationNetRobot, RSTATIC.leg_names[i]).inSwingPhase() for i in range(0,6)]
             # Test if CoG moves moves behind the connecting line
             # connecting the leg on each side which
             # - has gc
@@ -235,20 +212,14 @@ class mmcBodyModelStance:
                 left_leg -= 2
             while right_leg>0 and not((getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).wleg.predictedGroundContact()): # (not(self.get_ground_contact(right_leg))): #(getattr(self.motivationNetRobot, RSTATIC.leg_names[right_leg])).inSwingPhase():
                 right_leg -= 2
-#            print("Middle left leg: ", self.motivationNetRobot.motivationNetLegs[2].wleg.realLeg.predictedGroundContact(), 
- #               " - ", self.motivationNetRobot.motivationNetLegs[2].wleg.realLeg.leg.input_foot_position[2], 
-  #              " / ",  self.motivationNetRobot.motivationNetLegs[2].stance_motivation.output_value,
-   #             " / ",  self.motivationNetRobot.motivationNetLegs[2].wleg.controlVelocities,
-    #            " vect: ", self.get_leg_vector('middle_left_leg'))
+
             self.left_leg = left_leg
             self.right_leg = right_leg
             # If there is no gc at all on one side it should be unstable
             if (left_leg < 0) or (right_leg < 0):
-                #print("INSTABLE", left_leg, right_leg)
                 stability = False
             else:
                 self.temp_stability_fact_back = self.swig_stance_body_model.check_static_stability(left_leg, right_leg)          
-                #print(self.temp_stability_fact, self.stability_threshold, [self.get_ground_contact(i) for i in range(0,6)])
                 if self.temp_stability_fact_back > self.stability_threshold:
                     stability = False 
                     print("INSTABLE AT BACK")         
@@ -271,16 +242,6 @@ class mmcBodyModelStance:
                     stability = False       
                     print("INSTABLE AT FRONT")         
                                 
-            # Determine which leg lead to the problem and activate the corresponding problem detector
-#CAUSE            if (not(stability) and self.leg_leading_to_problem < 0):
-#CAUSE                for i in range(5,-1,-1):
-#CAUSE                    if (self.old_swing_bm[i] != current_swing_bm[i]) and self.old_swing_bm[i]==False:
-#CAUSE                        print("Problem encountered in leg ", i)
-#CAUSE                        self.leg_leading_to_problem = i
-#CAUSE                        break       
-#CAUSE            elif (stability):
-#CAUSE                self.leg_leading_to_problem = -1
-#CAUSE            self.old_swing_bm = current_swing_bm
             return stability
         else:
             return True

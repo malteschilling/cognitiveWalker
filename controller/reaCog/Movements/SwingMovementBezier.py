@@ -3,6 +3,7 @@ import numpy
 from tools.FreezableF import Freezable as Freezable  
 from .. import WalknetSettings as WSTATIC
 from Hector import RobotSettings as RSTATIC
+
 ## Function that computes a point that lies on a bezier curve
 # The curve is defined by the parameters in points (knots and control points) and the order.
 # The "parameter" defines the position of the point on the curve
@@ -41,8 +42,6 @@ class TrajectoryGenerator(Freezable):
 		self.frozen=True
 		
 	def reset(self):
-		#self.current_parameter=0
-		#self.target_parameter=None
 		self.last_target_position=None
 		self.last_target_parameter=None
 	
@@ -93,8 +92,6 @@ class TrajectoryGenerator(Freezable):
 			
 			max_parameter=float('-inf')
 			
-
-			#print('parameter_position_list: ', parameter_position_list)
 			# search in the parameter_position_list for a parameter that leads to a distance slightly less than desired_distance and a parameter that leads to a slightly longer distance
 			for temp_parameter, temp_target_position in parameter_position_list:
 				temp_distance=numpy.linalg.norm(temp_target_position-current_position)
@@ -186,15 +183,7 @@ class SwingMovementBezier(Freezable):
 			control_point_1=self.collision_point-self.retraction_distance*start_to_end_direction
 			evasion_point=self.collision_point+self.evasion_distance*apex_point_direction
 			if collision_ratio<self.apex_point_ratio: # the collision happened before the leg reached the apex
-				#print('self.swing_start_point: ', self.swing_start_point)
-				#print('self.swing_target_point: ', self.swing_target_point)
-				#print('self.collision_point: ', self.collision_point)
-				#print('collision_ratio: ', collision_ratio)
-				#print('start_to_end_vector_to_collision_point_distance: ', start_to_end_vector_to_collision_point_distance)
-				#print('self.evasion_distance: ', self.evasion_distance)
-				#print('apex_point_distance: ', apex_point_distance)
 				if start_to_end_vector_to_collision_point_distance+self.evasion_distance<apex_point_distance: # the evasion movement will be below the apex point
-					#print('first case')
 					evasion_to_apex_vector=apex_point-evasion_point
 					control_point_3=apex_point-numpy.dot(0.5*evasion_to_apex_vector, start_to_end_direction)*start_to_end_direction
 					evasion_to_control_point_3_vector=control_point_3-evasion_point
@@ -204,19 +193,9 @@ class SwingMovementBezier(Freezable):
 					control_point_2=evasion_point-evasion_to_control_point_3_distance*evasion_to_control_point_3_direction
 					retraction_point=0.5*(control_point_2-control_point_1)+control_point_1
 					control_point_4=apex_point+0.5*self.apex_point_ratio*start_to_end_vector
-					#print([self.collision_point, control_point_1,retraction_point,control_point_2,evasion_point, control_point_3, apex_point, control_point_4, self.swing_target_point])
 					return numpy.array([self.collision_point, control_point_1,retraction_point,control_point_2,evasion_point, control_point_3, apex_point, control_point_4, self.swing_target_point])
 				else: # the evasion movement will be above the standard apex point
-					#print('above apex')
-					#start_to_end_vector_to_evasion_point_distance=numpy.linalg.norm((evasion_point-self.swing_start_point)-numpy.dot(evasion_point-self.swing_start_point, start_to_end_direction)*start_to_end_direction)
-					#print('second case')
 					if start_to_end_vector_to_collision_point_distance+self.evasion_distance>self.max_evasion_distance:
-						#print('above max apex')
-						#evasion_distance=self.max_evasion_distance-start_to_end_vector_to_collision_point_distance
-						#print('self.swing_start_point: ', self.swing_start_point)
-						#print('start_to_end_vector: ', start_to_end_vector)
-						#print('apex_point_direction: ', apex_point_direction)
-						#print('collision_ratio: ', collision_ratio)
 						evasion_point=self.swing_start_point+collision_ratio*start_to_end_vector+self.max_evasion_distance*apex_point_direction
 						apex_point=self.swing_start_point+self.apex_point_ratio*start_to_end_vector+self.max_evasion_distance*apex_point_direction
 						
@@ -226,22 +205,16 @@ class SwingMovementBezier(Freezable):
 					control_point_2=evasion_point-self.retraction_distance*start_to_end_direction
 					retraction_point=0.5*(control_point_2-control_point_1)+control_point_1
 					control_point_4=apex_point+0.5*(1-self.apex_point_ratio)*start_to_end_vector
-					#print(numpy.array([self.collision_point, control_point_1, retraction_point, control_point_2, evasion_point, control_point_3, apex_point, control_point_4, self.swing_target_point]))
 					return numpy.array([self.collision_point, control_point_1, retraction_point, control_point_2, evasion_point, control_point_3, apex_point, control_point_4, self.swing_target_point])
 			else: # the collision happened after the leg reached the apex
-				#print('third case')
 				if collision_ratio>0.9:
 					return numpy.array([self.collision_point, self.collision_point-apex_point_direction/2, self.collision_point-apex_point_direction])
-				
 				if start_to_end_vector_to_collision_point_distance+self.evasion_distance>self.max_evasion_distance:
-					#print('above apex')
 					evasion_point=self.swing_start_point+collision_ratio*start_to_end_vector+self.max_evasion_distance*apex_point_direction
 				control_point_2=evasion_point-self.retraction_distance*start_to_end_direction
 				retraction_point=0.5*(control_point_2-control_point_1)+control_point_1
 				control_point_3=evasion_point+(1-collision_ratio)*start_to_end_vector
-				#print(numpy.array([self.collision_point, control_point_1, retraction_point, control_point_2, evasion_point, control_point_3, self.swing_target_point]))
 				return numpy.array([self.collision_point, control_point_1, retraction_point, control_point_2, evasion_point, control_point_3, self.swing_target_point])
-
 	
 	def moveToNextPoint(self, activation):
 		if not self.mleg.wleg.leg.leg_enabled:

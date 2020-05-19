@@ -56,7 +56,7 @@ safe_stop_time = 50
 #== Input simulation parameters =====
 #=====================================
 # Define a walking speed.
-default_speed = 0.020 # 0.018
+default_speed = 0.020 # Tripod: 0.02, Tetrapod: 0.012 or 0.016
 max_speed=0.1
 # Give a direction (an angle in degrees, should be quite low = 15)
 default_direction_angle = 0. # 12.
@@ -148,28 +148,6 @@ stanceheight = 0.2#0.18
 stancewidth = 0.27*0.9
 default_stance_distance=0.16
 
-# front_initial_aep = numpy.array([0.16,  -stancewidth, -stanceheight])  # for forward walking
-# front_initial_pep = numpy.array([front_initial_aep[0]-0.20,  -stancewidth, -stanceheight]) # for forward walking
-# middle_initial_aep =numpy.array([0.05,  -stancewidth, -stanceheight]) # for forward walking
-# middle_initial_pep = numpy.array([middle_initial_aep[0]-0.15,  -stancewidth, -stanceheight]) # -0.07# for forward walking
-# hind_initial_aep = numpy.array([-0.08,  -stancewidth, -stanceheight])
-# hind_initial_pep =numpy.array([hind_initial_aep[0]-0.15,  -stancewidth, -stanceheight])  # -0.21
-
-# front_initial_aep = numpy.array([0.12,  -stancewidth, -1.1*stanceheight])  # for forward walking
-# front_initial_pep = numpy.array([front_initial_aep[0]-0.2,  -stancewidth, -1.1*stanceheight]) # for forward walking
-# middle_initial_aep =numpy.array([0.08,  -stancewidth, -stanceheight]) # for forward walking
-# middle_initial_pep = numpy.array([middle_initial_aep[0]-0.2,  -stancewidth, -stanceheight]) # -0.07# for forward walking
-# hind_initial_aep = numpy.array([-0.08,  -stancewidth, -stanceheight])
-# hind_initial_pep =numpy.array([hind_initial_aep[0]-0.2,  -stancewidth, -stanceheight]) 
-
-# GOLD 2018-09-09
-#front_initial_aep = numpy.array([0.08,  -stancewidth, -1.1*stanceheight])  # for forward walking
-#front_initial_pep = numpy.array([front_initial_aep[0]-0.2,  -stancewidth, -1.1*stanceheight]) # for forward walking
-#middle_initial_aep =numpy.array([0.1,  -stancewidth, -stanceheight]) # for forward walking
-#middle_initial_pep = numpy.array([middle_initial_aep[0]-0.2,  -stancewidth, -stanceheight]) # -0.07# for forward walking
-#hind_initial_aep = numpy.array([-0.08,  -stancewidth, -stanceheight])
-#hind_initial_pep =numpy.array([hind_initial_aep[0]-0.2,  -stancewidth, -stanceheight]) 
-
 front_initial_aep = numpy.array([0.12,  -stancewidth, -1.1*stanceheight])  # for forward walking
 front_initial_pep = numpy.array([front_initial_aep[0]-default_stance_distance,  -stancewidth, -1.1*stanceheight]) # for forward walking
 middle_initial_aep =numpy.array([0.08,  -stancewidth, -stanceheight]) # for forward walking
@@ -193,13 +171,7 @@ ki = 0.005	# I-controller factor
 
 #relative position of the dep between the aep and pep seen from the pep
 deprelation = 1/3;
-#~ depheight = 0.2; # IMO that's a bit too high.
-#depheight = -0.05; # sufficient for flat terrain
-#plane on which there is the dep relative to the aep pep axis
-# depx = 0 # an x-shift makes no sense (fw vs bw); use deprelation
-# depy = 0.30; # invert for right legs # will be set by WLeg>depcalc
 depz = -0.08; #height of the dep point in a swing trajectory
-#depheight = depz # for backwards compatibility, TODO: remove
 dep_normal_vector_z_slope = -0.2 # indirectly determines depy, see depcalc
 
 #===== swing-net related values ====
@@ -226,30 +198,16 @@ mmc_mental_iterations = 10
 #===== Motivation Units ======
 ws = 3
 
-
-## Marc proposed these parameters:
-# r1: -0.125 
-# r2:  0.125
-# r3c: 0.250
-# r3i: 0.188
-
-# Git parameter set
+# Coordination Rule weights
 rule1_toAnterior = -0.2
 rule1_toNeighbor = -0.13
 rule2 = 0.08 # was 0.08
-rule3_contralateral = 0.1# was 0.06
-#NEW:
+rule3_contralateral = 0.1
 rul3_ipsilateral = 0.06
 #rule3_sigmoid_toPosterior = 0.125
-
-# The velocity depend parameters have been adapted. = divided/multiplied by 12 because of the new body model
-
-# Changes:
-# As no rule 5: Introduced rule 1
+# As there is no rule 5: we introduced rule 1
 #   - between hind legs
 #   - from middle to hind legs
-# Adapted rule 3 ipsilateral to new velocity, and to new longer stance width
-# as well as increased influence. 
 
 #===== walking rules parameters =====
 # The dictionary defines the constants that define the behaviour of the coordination rules. Using the "coordination_weights" attribute, for each combination of sender and receiver leg, the strength of the coordination rule can be set. The weights are set in the format coordination_weights[sender_leg_nr][receiver_leg_nr] with the leg numbers according to the order defined in RobotSettings.py (or RSTATIC, as it is most often imported). The rules can be activated/deactivated using the "active" attribute. 
@@ -349,17 +307,10 @@ coordination_rules = {
 
 			),
 		"active_distance": 0.05, 
-#		"threshold_offset": 0.25, values from MS
-#		"threshold_slope": 20 values from MS
 		"threshold_offset": 0.236, 
-		"threshold_slope": 2, #19.5,#scaled down by factor 10, new velocity
-		"threshold_2_offset": 0.079, #scaled down by factor 10, new velocity
-		"threshold_2_slope": 4 #36.6#scaled down by factor 10, new velocity
-#		"active_distance": 0.03, 
-#		"threshold_offset": 0.236, 
-#		"threshold_slope": 19.5,
-#		"threshold_2_offset": 0.079, 
-#		"threshold_2_slope": 36.6
+		"threshold_slope": 2,
+		"threshold_2_offset": 0.079, 
+		"threshold_2_slope": 4 
 		},
 	"rule3LinearThreshold":
 		{"active":True,
@@ -388,9 +339,9 @@ coordination_rules = {
 					0,		0,
 			  rule3_contralateral/3,		0)
 			),
-		"active_distance": 0.03,#was 0.03
+		"active_distance": 0.03,
 		"threshold_offset": 0.5, 
-		"threshold_slope": 6. # *15 because of new velocity fact, was 0.5
+		"threshold_slope": 6. 
 		},
 	"rule4":
 		{"active":False,

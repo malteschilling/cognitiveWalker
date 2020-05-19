@@ -1,5 +1,12 @@
 from controller.reaCog.MotivationNetwork.MotivationUnit import MotivationUnit
 
+##
+#	DelayUnit
+#
+#	is a single MotivationUnit (that is a simple neuron) that delays an input signal.
+# 	Firing will be delayed by the set delay.
+##
+
 class DelayUnit(MotivationUnit):
 
 	def __init__(self, name, startValue=0, bias=0, group_name='', delay=5):

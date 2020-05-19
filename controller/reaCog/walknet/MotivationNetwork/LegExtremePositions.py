@@ -4,6 +4,15 @@
 from controller.reaCog.MotivationNetwork.ModulatedRoutine import ModulatedRoutine
 import copy
 
+##
+#	LegExtremePositions is a ModulatedRoutine
+#	which is invoked by a ModulatingMotivationUnit.
+#	When this unit is active it calls (after complete evaluation of the network)
+#	as a side-effect the execution of the routine.
+#	
+#	The LegExtremePositions is called for setting the movement direction (forward or
+#	backward walking) and the corresponding extreme positions for the legs.
+##
 class LegExtremePositions(ModulatedRoutine):
 
 	def __init__(self, leg, forward=True ):

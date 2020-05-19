@@ -5,7 +5,6 @@ Created on 8.6.2013
 @author: mschilling
 '''
 
-#from BehindPepMotivationUnit import CurrentPEP
 from controller.reaCog.MotivationNetwork.ModulatedRoutine import ModulatedRoutine
 
 """ CoordinationRuleApplicationRoutine
@@ -32,6 +31,3 @@ class CoordinationRuleApplicationRoutine(ModulatedRoutine):
 	#	as calculated in the source_coord_rule (scaled by the weight factor)	
 	def modulatedRoutineFunctionCall(self, weight):
 		self.target_pep.shiftCurrentPEP( self.coord_weight * self.source_coord_rule )
-		#self.current_pep_shift = self.example_shift + self.counter * 0.042
-		#self.counter +=1
-		#print("Current pep shift")

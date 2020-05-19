@@ -50,7 +50,6 @@ class mmcAngularLegModel:
         # Copy some of the variables to make access faster
         # ! These values are not updated while the controller runs!
         self.name = self.wleg.leg.name
-        #self.leg_enabled = self.wleg.leg.leg_enabled
         
         self.leg_segm = [self.wleg.leg.segment_lengths[0], self.wleg.leg.segment_lengths[1], self.wleg.leg.segment_lengths[2]]
         self.leg_target = [numpy.array([(self.leg_segm[0] + self.leg_segm[1] + self.leg_segm[2]),0.0,0.0, 0.0])]
@@ -106,7 +105,6 @@ class mmcAngularLegModel:
             self.mmc_kinematic_iteration_step()
         
     def __getattr__(self,name):
-        #print("Leg MMC Lookup:   ", name)
         """ The MMC leg model reroutes all calls which can not be answered to
             the real robot leg (which was set in initialization).
             This is mainly done to handle all the variables associated with the Leg
@@ -178,7 +176,6 @@ class mmcAngularLegModel:
             self.new_joints[2] = sum(mc_joint)/(self.damping + len(mc_joint) - 1)
             if (self.new_joints[2] < -1.5608):
                 self.new_joints[2] = -1.5608
-            #return self.new_joints
 
     ##  Compute the target vector.
     #   Application of basically the forward kinematics
@@ -199,7 +196,6 @@ class mmcAngularLegModel:
         self.new_target[2] = (self.leg_segm[1] * math.sin(self.beta.getInputPositionForIterationStep(step))
                     - self.leg_segm[2] * math.cos(self.beta.getInputPositionForIterationStep(step) - self.gamma.getInputPositionForIterationStep(step))
                 + self.damping * self.leg_target[step][2]) / (1 + self.damping)
-        #return self.new_target
 
     ##  Compute of the projection length of the leg.
     #   The second and third joint work in a plane - spanned by the z-axis
@@ -266,7 +262,6 @@ class mmcAngularLegModel:
         self.alpha.setInputPosition(angles[0])
         self.beta.setInputPosition(self.betaDirectionFactor*angles[1])
         self.gamma.setInputPosition(self.betaDirectionFactor*angles[2])
-        #self.joint[-1] = angles
 
     ##  Sets the sensor feedback values of the joints.
     #   These are integrated in the MMC network.
@@ -287,17 +282,6 @@ class mmcAngularLegModel:
         self.current_sensor_angles[0].append(angles[0] + self.noise[0])
         self.current_sensor_angles[1].append(self.betaDirectionFactor*angles[1] + self.noise[1])
         self.current_sensor_angles[2].append(self.betaDirectionFactor*angles[2] + self.noise[2])
-
-    ##  Converge to inverse kinematic solution.
-    #   Access method for the stance network - for a given target position
-    #   the network converges over a couple of timesteps (around 5 sufficient, 10
-    #   very good) to a solution.
-#   def computeInverseKinematics(self, target_point):
-#       target_in_leg = numpy.dot(self.wleg.leg._phi_psi_trans_inv, target_point)
-#       for _ in range(0,10):
-#           self.set_leg_target( target_in_leg )
-#           self.mmc_kinematic_iteration_step()
-#       return self.getInputPosition()
         
     def getFootPosition(self):
         if not(self.amputated):
@@ -321,20 +305,12 @@ class mmcAngularLegModel:
         new_point_2[1] += self.lf * math.cos(self.beta.getInputPositionForIterationStep(-1)) * math.sin(-self.alpha.getInputPositionForIterationStep(-1))
         new_point_2[2] += self.lf * math.sin(self.beta.getInputPositionForIterationStep(-1))
         leg_points.append(new_point_2)
-        
-#       new_point_3 = numpy.array(new_point_2)
-#       new_point_3[0] += self.lt * math.sin(self.beta.getInputPositionForIterationStep(-1) - self.gamma.getInputPositionForIterationStep(-1)) * math.cos(self.alpha.getInputPositionForIterationStep(-1))
-#       new_point_3[1] += self.lt * math.sin(self.beta.getInputPositionForIterationStep(-1) - self.gamma.getInputPositionForIterationStep(-1)) * math.sin(-self.alpha.getInputPositionForIterationStep(-1))
-#       new_point_3[2] += -self.lt * (math.cos(self.beta.getInputPositionForIterationStep(-1) - self.gamma.getInputPositionForIterationStep(-1)))
-#       leg_points.append(new_point_3)
-                
+                     
         leg_points.append(self.leg_target[-1])
-#       print("LEG POINTS before ROT: ", leg_points)
         for i in range (2,5):
             leg_points[i] = (numpy.dot(self.wleg.leg._phi_psi_trans, leg_points[i]))[0:3]
             leg_points[i] -= coxa_pos
         return leg_points
-#       print("LEG POINTS after ROT:  ", leg_points)
 
     @property
     def input_foot_position(self):
@@ -346,30 +322,21 @@ class mmcAngularLegModel:
     #   For all three joints of the leg.
     #   @param vector of the three joint velocities.
     def addControlVelocities(self, new_vel):
-#       print("OLD VEL: ", self.controlVelocities)
         self.controlVelocities += new_vel
-#       print("NEW VEL: ", self.controlVelocities)
-#30        if (self.name == "middle_left_leg"):
-#30            print("Vel: ", new_vel, " / ", self.controlVelocities)
 
     ##
     #   Sending the collected control signals to the three joints.
     #   Velocities are used as control signals.
     def sendControlVelocities(self):
         if not(self.amputated):
-            #self.setAngleVelocity(self.controlVelocities)
             current_angles = self.getInputPosition()
-            #print("Vel: ", self.controlVelocities)
             new_angles = current_angles + 0.01*self.controlVelocities
             self.set_joint_angles( new_angles )
             for i in range(0, WSTATIC.mmc_mental_iterations):
                 self.set_joint_angles( new_angles )
                 self.mmc_kinematic_iteration_step()
-#TODO: remove Debug old_vel
             self.old_vel = self.controlVelocities
             self.controlVelocities = numpy.zeros(3)
-#30            if (self.name == "middle_left_leg"):
-#30                print("SEND VELOCITIES ML")
         
     ##
     #   Estimate ground ground_contact:
@@ -386,7 +353,6 @@ class mmcAngularLegModel:
             return 0
                 
     def getCommentedGC(self):
-#       print("INPUT FP: ", self.input_foot_position, self)
         if (self.wleg.leg.leg_enabled):
             if (self.input_foot_position[2] < -(WSTATIC.stanceheight * WSTATIC.predicted_ground_contact_height_factor)):
                 return 1

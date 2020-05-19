@@ -45,12 +45,8 @@ class StanceMovementSpringDamperMassBody(object):
 		
 	def updateLegStates(self):
 		#current_foot_positions=numpy.array(self.mrobot.wrobot.robot.getInputFootPositions())
-		#print('current_foot_positions: ')
-		#print(current_foot_positions)
 		for leg_num, mleg in enumerate(self.mrobot.motivationNetLegs):
 			inv_transformation_matrix=numpy.eye(4)
-			#print('self.transformationMatrix')
-			#print(self.transformationMatrix)
 			if mleg.wleg.leg.leg_enabled and mleg.isStancing() and not self.leg_stanced_in_last_iteration[leg_num]:
 				current_foot_position=self.mrobot.wrobot.robot.getInputFootPositionOfLeg(leg_num)
 				self.foot_positions[leg_num,:]=current_foot_position
@@ -58,15 +54,10 @@ class StanceMovementSpringDamperMassBody(object):
 				#if not inv_transformation_matrix:
 				#	inv_transformation_matrix=numpy.linalg.inv(self.transformationMatrix)
 				#temp=numpy.append(current_foot_position,1)
-				#print('inv_transformation_matrix')
-				#print(inv_transformation_matrix)
-				#print('temp')
-				#print(temp)
 				#assumed_position_from_last_iteration=numpy.dot(inv_transformation_matrix, temp)
 				self.sdm_systems[leg_num].velocity=0#current_foot_position[2]-assumed_position_from_last_iteration[2]
 			elif mleg.isSwinging():
 				self.leg_stanced_in_last_iteration[leg_num]=False
-			#	self.foot_positions[leg_num,:]=numpy.array([numpy.nan,numpy.nan, numpy.nan]) 
 				
 	def mmc_iteration_step(self):
 		pass
@@ -84,11 +75,6 @@ class StanceMovementSpringDamperMassBody(object):
 			if not numpy.isnan(temp_new_foot_positions[leg_num,0]):
 				temp_new_foot_positions[leg_num]-=direction_vector
 				temp_new_foot_positions[leg_num,2]=sdm.computeNextPosition(1/RSTATIC.controller_frequency)
-
-		#print('temp_new_foot_positions')
-		#print(temp_new_foot_positions)
-		# Compute the optimal transformation matrix between the old and the new foot points
-
 			
 		old_stancing_foot_positions=current_foot_positions[ind,:]
 		new_stancing_foot_positions=temp_new_foot_positions[ind,:]
@@ -101,8 +87,6 @@ class StanceMovementSpringDamperMassBody(object):
 		for i, ofp, nfp in zip(ind, old_stancing_foot_positions, new_stancing_foot_positions):
 			self.sdm_systems[i].position=nfp[2]
 			self.sdm_systems[i].velocity=nfp[2]-ofp[2]
-		#print('self.foot_positions')
-		#print(self.foot_positions)
 		return self.foot_positions
 	
 	def getLegsRelativeTargetPosition(self, leg_name=None, leg_num=None):
@@ -157,12 +141,8 @@ def rigid_transform_3D(A, B):
 
 	# dot is matrix multiplication for array
 	H = numpy.dot(numpy.transpose(AA), BB)
-	#print('H')
-	#print(H)
 	U, S, Vt = numpy.linalg.svd(H)
 	R = numpy.dot(Vt.T , U.T)
-	#print('R')
-	#print(R)
 	# special reflection case
 	if numpy.linalg.det(R) < 0:
 	   Vt[2,:] *= -1

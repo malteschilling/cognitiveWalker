@@ -7,6 +7,14 @@ import controller.reaCog.WalknetSettings as WSTATIC
 
 import numpy
 
+##
+# 	SwitchObject
+#
+#	is a MotivationUnit that is triggered inside the neural network.
+#	And causes as a side effect switching between body and body model
+#	(decoupling the body during internal simulation). It furthermore
+#	realizes some initializations when switching.
+##  
 class SwitchObject (MotivationUnit):
 
     def __init__(self, switchRobot, value = False):
@@ -29,7 +37,6 @@ class SwitchObject (MotivationUnit):
                 wleg.controlVelocities = numpy.zeros(3)
             #input()
             self.switchRobot.wRobot.sendAllAngleVelocity()
-#           print("SEND ZERO VELOCITIES TO ROBOT")
             for motiv_leg in self.switchRobot.mmcRobot.motivationNetRobot.motivationNetLegs:
                 motiv_leg.swing_net.saveCurrentSwingState()
                 if (motiv_leg.aep_temp is not None):
@@ -43,7 +50,6 @@ class SwitchObject (MotivationUnit):
             self.switchRobot.wRobot.robot.unlock()
             print("SWITCH BACK TO BEHAVIOUR")
             # Turn on visualization during planning
-            #input()
             self.switchRobot.mmcRobot.turnOffCurrentBodyModelDrawing()
 
             self.resetSystemToInitialStateOfInternalSimulation()
@@ -92,15 +98,6 @@ class SwitchObject (MotivationUnit):
     ##  Output function (automatically called in processing of network).
     #   Restricts value range to 0<=output<=1.
     def applyOutputFunction(self):
-
-#       if (self.switchRobot.mmcRobot.motivationNetRobot.cognitive_expansion.Phase.MU_TestBeh.output_value > 0.):
-#           mot_str = ""
-#           mot_str = mot_str + " SW: " + '{:.4}'.format(float(self.switchRobot.mmcRobot.motivationNetRobot.hind_right_leg.swing_motivation.output_value)) + "\t" 
-#           mot_str = mot_str + " ST: " + '{:.4}'.format(float(self.switchRobot.mmcRobot.motivationNetRobot.hind_right_leg.stance_motivation.output_value)) + "\t" 
-#           mot_str = mot_str + " GC: " + '{:.4}'.format(float(self.switchRobot.mmcRobot.motivationNetRobot.hind_right_leg.gc.output_value)) + "\t" 
-#           mot_str = mot_str + " behindPEP: " + '{:.4}'.format(float(self.switchRobot.mmcRobot.motivationNetRobot.hind_right_leg.behindPEP.output_value)) + "\t" 
-#           print("TESTBEHAVIOR - " + mot_str)
-
         MotivationUnit.applyOutputFunction(self)
         # Calls side effect number of steps after switching:
 #       if (self.count_current_state == self.call_side_effect_at_iteration):
@@ -118,24 +115,3 @@ class SwitchObject (MotivationUnit):
             self.old_decoupled = self.decoupled
             self.count_current_state = 0
             self.callImmediateSideEffect(self.decoupled)
-
-# class SwitchObject (object):
-# 
-#   def __init__(self, value = False):
-#       self.decoupled = value
-
-# from controller.reaCog.MotivationNetwork.MotivationUnit import executeNeuralNetStep
-# print("TEST")
-# oneUnit = MotivationUnit("One")
-# oneUnit.addConnectionTo(oneUnit, 1)
-# oneUnit.addIncomingValue(1)
-# 
-# switchUnit = SwitchObject()
-# oneUnit.addConnectionTo(switchUnit, 1)
-# 
-# for i in range(20):
-#   print(oneUnit.output_value, "SW: ", switchUnit.decoupled, switchUnit.output_value)
-#   executeNeuralNetStep()
-#   if i==10:
-#       oneUnit.addConnectionTo(switchUnit, -1)
-#   input()

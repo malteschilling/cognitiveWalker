@@ -34,20 +34,13 @@ class PredictedGroundContactSensorUnit(GroundContactSensorUnit):
     
     ##  Pull ground contact value from the connected leg.
     def updateSensorValue(self):
-        #print("Pred GC: ", self.name, self.motivationNetLeg.wleg.predictedGroundContact() )
         if WSTATIC.searching_movements:
             if (self.output_value > 0.):
                 self.output_value = self.motivationNetLeg.wleg.predictedGroundContact()
             else:
-                # Maybe look for only end of swing movement
-                #if (self.motivationNetLeg.wleg.leg.input_foot_position[0] > ):
                 # Check if there is a force measured supporting the body
                 if (self.motivationNetLeg.wleg.leg.estimateForceFromTorsion()[2] < 0.):
                     self.output_value = self.motivationNetLeg.wleg.predictedGroundContact()
-                #if ("front_left" in self.motivationNetLeg.wleg.leg.name):
-                 #   print(self.output_value, self.motivationNetLeg.wleg.leg.input_foot_position[0], 
-                  #      " force: ", self.motivationNetLeg.wleg.leg.estimateForceFromTorsion(),
-                   #     " torque: ", self.motivationNetLeg.wleg.leg.joints[1].torsion)
         else:
             self.output_value = self.motivationNetLeg.wleg.predictedGroundContact()
 
@@ -65,11 +58,6 @@ class TarsusPressureGroundContactSensorUnit(GroundContactSensorUnit):
     ##  Pull ground contact value from the connected leg.
     def updateSensorValue(self):
         self.output_value = self.motivationNetLeg.wleg.tarsusPressureSensorGroundContact()
-#       if (self.output_value == 0):
-#           self.motivationNetLeg.motivationNetRobot.bodyModelStance.lift_leg_from_ground(self.motivationNetLeg.wleg.leg_nr)
-        #print("GC: ", self.output_value, self.motivationNetLeg.stance_motivation.output_value , self.motivationNetLeg.wleg.leg.tarsus_pressure_sensor.highestPressure)
-
-
 
 """ Torsion Based estimation of ground contact
 """
@@ -87,5 +75,3 @@ class TorsionBasedGroundContactSensorUnit(GroundContactSensorUnit):
             self.output_value = 1
         else:
             self.output_value = 0
-        #print("GC: ", self.output_value, self.motivationNetLeg.stance_motivation.output_value , self.motivationNetLeg.wleg.leg.tarsus_pressure_sensor.highestPressure)
-
