@@ -61,6 +61,25 @@ The repository consists of multiple folders:
 
 --
 
+### Supporting Information / Supplement
+
+We show further results and provide more information concerning the cognitive expansion as supporting information in the supplement and video folder.
+
+* Supplement A: stable locomotion is shown in dynamic simulation at different velocities demonstrating the adaptivity and robustness of the controller. 
+* Supplement B: Detailed results on the second experiment, carried out on the real, physical robot. Different disturbances were applied and it is analyzed how the cognitive expansion resolves problematic postures. 
+* Supplement C: A systematic analysis of different starting postures (done in dynamic simulation) is provided. 
+* Supplement D: Detailed schematic of the controller is provided showing the cognitive expansion and how the dynamics of the network converge during selecting an action out of its original context.
+* Supplement E: Evaluation of the predictive capabilities of the internal model (comparison internal model prediction to dynamic simulation or real robot results).
+
+Videos:
+
+* Video S1: Robot climbing over hole in walkway requires rearranging foot position by the cognitive expansion. Hector walks on a walkway containing a hole. Shown is a perspective view (right) and a side view showing a closeup of the hole (left). Top row shows coordination of foot movements. When a leg reaches into the hole, a searching movement to the front is initiated until ground contact has been established. As a consequence, the middle left leg was moved far to the front. When the hind left leg had to be lifted, the robot got unstable. Therefore, the robot was stopped and started to test different alternative behaviors in internal simulation. This is illustrated by a stick figure in the side view (left). As a solution, the middle left leg performed a step backwards (marked red) which unloaded the hind leg and allowed performance of a normal swing. Afterwards normal walking is resumed. 
+* Video S2: Emergence of stable gait patterns for different velocities: When the decentralized control structure is run with different velocities, different gait patterns emerge adaptively from the interaction of the local control centers. Shown are tripod patterns, tetrapod patterns, and a stable pattern that is situated between a typical tetrapod gait and a typical wave gait. These patterns depend on different velocity factors in the internal body model that controls the stance model; the velocity factor represents the “pull” at the front of the model during a single iteration of the controller scheme. Emergent patterns can be observed in the footfall patterns in the upper part of the video.
+* Video S3: Disturbance of the physical robot walking by inducing long steps: As further experiments, we systematically induced searching movements and long steps on the real robot Hector. This forced movement disturbed coordination and leads to unstable walking situations. Shown are two walks. In the first one, the middle left leg was prolonged by 5 cm, which did not require activation of the cognitive expansion. For the second walk (prolongation of middle left leg by 10 cm), the cognitive expansion had to take over in order to solve an unstable situation. Again, the cognitive expansion found a behavior applied out of context which allowed to resolve the situation and later to continue stable walking.
+
+
+--
+
 ### References
 
 * Schilling, M., Paskarbeit, J., Ritter, H., Schneider, A., and Cruse, H. (submitted). From Adaptive Locomotion to Predictive Action Selection – Cognitive Control for a Six-Legged Walker.
